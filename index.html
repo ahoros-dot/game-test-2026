@@ -84,6 +84,9 @@
         canvas {
             background-color: rgba(0, 0, 0, 0.95);
             display: block;
+            /* Ensure aspect ratio is preserved even if container shrinks */
+            max-width: 100%;
+            height: auto;
         }
 
         #ui-panel {
@@ -368,11 +371,11 @@
 
         <!-- Controls (Mobile) -->
         <div id="controls">
-            <button class="ctrl-btn btn-up" ontouchstart="playerRotate(-1); return false;" onmousedown="playerRotate(-1)">↻</button>
-            <button class="ctrl-btn btn-left" ontouchstart="playerMove(-1); return false;" onmousedown="playerMove(-1)">←</button>
-            <button class="ctrl-btn btn-down" ontouchstart="playerDrop(); return false;" onmousedown="playerDrop()">↓</button>
-            <button class="ctrl-btn btn-right" ontouchstart="playerMove(1); return false;" onmousedown="playerMove(1)">→</button>
-            <button class="ctrl-btn btn-drop" ontouchstart="hardDrop(); return false;" onmousedown="hardDrop()">HARD DROP</button>
+            <button class="ctrl-btn btn-up">↻</button>
+            <button class="ctrl-btn btn-left">←</button>
+            <button class="ctrl-btn btn-down">↓</button>
+            <button class="ctrl-btn btn-right">→</button>
+            <button class="ctrl-btn btn-drop">HARD DROP</button>
         </div>
     </div>
 
@@ -442,28 +445,35 @@
 
             let availableHeight, availableWidth;
 
+            // UIパネルとコントロールの実サイズを取得
+            const uiHeight = uiPanel ? uiPanel.offsetHeight : (isMobile ? 60 : 0);
+            const controlsHeight = (isMobile && controlsDiv) ? controlsDiv.offsetHeight : 0;
+            
+            // 安全マージン
+            const marginX = 20;
+            const marginY = 20;
+
             if (isMobile) {
-                // Mobile: Height - (UI Panel Height) - (Controls Height) - (Padding)
-                // Roughly UI(~60px) + Controls(~180px) + Padding(~20px) = 260px
-                availableHeight = height - 260;
-                availableWidth = width - 20; // Some margin
+                const usedHeight = uiHeight + controlsHeight + marginY;
+                availableHeight = height - usedHeight;
+                availableWidth = width - marginX;
             } else {
-                // PC: Height - Padding
-                availableHeight = height - 40;
-                availableWidth = width - 200; // Subtract UI width
+                availableHeight = height - marginY;
+                const uiWidth = uiPanel ? uiPanel.offsetWidth : 140;
+                availableWidth = width - uiWidth - marginX * 2;
             }
 
-            // Calculate max block size that fits
+            // ブロックサイズを計算 (小数点切り捨て)
             const sizeByHeight = Math.floor(availableHeight / 22);
             const sizeByWidth = Math.floor(availableWidth / 10);
             
-            // Choose the limiting dimension
+            // 小さい方に合わせる（正方形を維持するため）
             BLOCK_SIZE = Math.min(sizeByHeight, sizeByWidth);
             
-            // Limit minimum/maximum block size for sanity
-            BLOCK_SIZE = Math.max(10, Math.min(BLOCK_SIZE, 60));
+            // 最小サイズ保証
+            BLOCK_SIZE = Math.max(10, BLOCK_SIZE);
 
-            // Set main canvas size
+            // Canvasサイズ設定
             canvas.width = BLOCK_SIZE * 10;
             canvas.height = BLOCK_SIZE * 22;
 
@@ -476,9 +486,7 @@
             context.setTransform(1, 0, 0, 1, 0, 0);
             context.scale(BLOCK_SIZE, BLOCK_SIZE);
 
-            // Scale Next Context (calculate scale to fit 4x4 or 3x3 piece centered)
-            // Next canvas is fixed pixel size in CSS, but internal resolution matches.
-            // We want roughly 4 blocks to fit
+            // Scale Next Context
             const nextBlockSize = nextSize / 5;
             nextContext.setTransform(1, 0, 0, 1, 0, 0);
             nextContext.scale(nextBlockSize, nextBlockSize);
@@ -488,8 +496,9 @@
         }
 
         window.addEventListener('resize', resizeGame);
-        // Initial call
-        window.addEventListener('load', resizeGame);
+        window.addEventListener('load', () => {
+            setTimeout(resizeGame, 100);
+        });
 
         function createMatrix(w, h) {
             const matrix = [];
@@ -868,7 +877,30 @@
             else if (event.keyCode === 32) hardDrop();
         });
         
-        // Initial resize happens on load
+        // Touch controls setup
+        function setupMobileControls() {
+            const bind = (selector, action) => {
+                const btn = document.querySelector(selector);
+                if (!btn) return;
+                
+                const handler = (e) => {
+                    // Prevent mouse events from firing after touch
+                    if (e.type === 'touchstart') e.preventDefault();
+                    action();
+                };
+
+                btn.addEventListener('touchstart', handler, { passive: false });
+                btn.addEventListener('mousedown', handler);
+            };
+
+            bind('.btn-up', () => playerRotate(1));
+            bind('.btn-left', () => playerMove(-1));
+            bind('.btn-right', () => playerMove(1));
+            bind('.btn-down', () => playerDrop());
+            bind('.btn-drop', () => hardDrop());
+        }
+        
+        setupMobileControls();
     </script>
 </body>
 </html>
