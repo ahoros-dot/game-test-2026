@@ -879,18 +879,28 @@
         
         // Touch controls setup
         function setupMobileControls() {
+            let lastTouchTime = 0; // Timestamp to prevent double firing
+
             const bind = (selector, action) => {
                 const btn = document.querySelector(selector);
                 if (!btn) return;
                 
-                const handler = (e) => {
-                    // Prevent mouse events from firing after touch
-                    if (e.type === 'touchstart') e.preventDefault();
+                const handleTouch = (e) => {
+                    // Prevent default scrolling/zooming/mouse emulation
+                    if (e.cancelable) e.preventDefault();
+                    lastTouchTime = Date.now();
                     action();
                 };
 
-                btn.addEventListener('touchstart', handler, { passive: false });
-                btn.addEventListener('mousedown', handler);
+                const handleMouse = (e) => {
+                    // Ignore mouse events that happen too close to a touch event (mouse emulation)
+                    const timeDiff = Date.now() - lastTouchTime;
+                    if (timeDiff < 1000) return; 
+                    action();
+                };
+
+                btn.addEventListener('touchstart', handleTouch, { passive: false });
+                btn.addEventListener('mousedown', handleMouse);
             };
 
             bind('.btn-up', () => playerRotate(1));
