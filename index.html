@@ -879,28 +879,30 @@
         
         // Touch controls setup
         function setupMobileControls() {
-            let lastActionTime = 0; // すべてのアクションに対するグローバルなクールダウン
+            let lastTouchTime = 0;
 
             const bind = (selector, action) => {
                 const btn = document.querySelector(selector);
                 if (!btn) return;
                 
-                const triggerAction = (e) => {
-                    if (e.cancelable) e.preventDefault(); // デフォルト動作を阻止
-                    e.stopPropagation(); // バブリング阻止
-
-                    const now = Date.now();
-                    // 前回のアクションから一定時間（例: 100ms）経過していない場合は無視
-                    // これにより、タッチとマウスの重複や、微細な連打を防ぐ
-                    if (now - lastActionTime < 100) return;
-                    
-                    lastActionTime = now;
+                const handleTouch = (e) => {
+                    if (e.cancelable) e.preventDefault(); // マウスエミュレーション等のデフォルト動作を阻止
+                    lastTouchTime = Date.now();
                     action();
                 };
 
-                // touchstartとmousedownの両方で同じガード付き関数を呼ぶ
-                btn.addEventListener('touchstart', triggerAction, { passive: false });
-                btn.addEventListener('mousedown', triggerAction);
+                const handleMouse = (e) => {
+                    // タッチイベント発生から500ms以内のマウスイベントは、
+                    // スマホブラウザが生成した互換用イベントとみなして無視する
+                    if (Date.now() - lastTouchTime < 500) return;
+                    action();
+                };
+
+                // touchstart: 指が触れた瞬間に発火 (最速)
+                btn.addEventListener('touchstart', handleTouch, { passive: false });
+                
+                // mousedown: PC用。スマホではtouchstartの後に発火することがあるのでガードする
+                btn.addEventListener('mousedown', handleMouse);
             };
 
             bind('.btn-up', () => playerRotate(1));
