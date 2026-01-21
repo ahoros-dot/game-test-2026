@@ -879,28 +879,28 @@
         
         // Touch controls setup
         function setupMobileControls() {
-            let lastTouchTime = 0; // Timestamp to prevent double firing
+            let lastActionTime = 0; // すべてのアクションに対するグローバルなクールダウン
 
             const bind = (selector, action) => {
                 const btn = document.querySelector(selector);
                 if (!btn) return;
                 
-                const handleTouch = (e) => {
-                    // Prevent default scrolling/zooming/mouse emulation
-                    if (e.cancelable) e.preventDefault();
-                    lastTouchTime = Date.now();
+                const triggerAction = (e) => {
+                    if (e.cancelable) e.preventDefault(); // デフォルト動作を阻止
+                    e.stopPropagation(); // バブリング阻止
+
+                    const now = Date.now();
+                    // 前回のアクションから一定時間（例: 100ms）経過していない場合は無視
+                    // これにより、タッチとマウスの重複や、微細な連打を防ぐ
+                    if (now - lastActionTime < 100) return;
+                    
+                    lastActionTime = now;
                     action();
                 };
 
-                const handleMouse = (e) => {
-                    // Ignore mouse events that happen too close to a touch event (mouse emulation)
-                    const timeDiff = Date.now() - lastTouchTime;
-                    if (timeDiff < 1000) return; 
-                    action();
-                };
-
-                btn.addEventListener('touchstart', handleTouch, { passive: false });
-                btn.addEventListener('mousedown', handleMouse);
+                // touchstartとmousedownの両方で同じガード付き関数を呼ぶ
+                btn.addEventListener('touchstart', triggerAction, { passive: false });
+                btn.addEventListener('mousedown', triggerAction);
             };
 
             bind('.btn-up', () => playerRotate(1));
