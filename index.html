@@ -416,7 +416,8 @@
             if (type === 'T') return [[0, 7, 0], [7, 7, 7], [0, 0, 0]];
         }
 
-        const arena = createMatrix(10, 22);
+        // Expanded width to 12
+        const arena = createMatrix(12, 22);
         let particles = [];
         let floatTexts = [];
 
@@ -465,7 +466,8 @@
 
             // ブロックサイズを計算 (小数点切り捨て)
             const sizeByHeight = Math.floor(availableHeight / 22);
-            const sizeByWidth = Math.floor(availableWidth / 10);
+            // Changed divisor from 10 to 12 for wider arena
+            const sizeByWidth = Math.floor(availableWidth / 12);
             
             // 小さい方に合わせる（正方形を維持するため）
             BLOCK_SIZE = Math.min(sizeByHeight, sizeByWidth);
@@ -473,8 +475,8 @@
             // 最小サイズ保証
             BLOCK_SIZE = Math.max(10, BLOCK_SIZE);
 
-            // Canvasサイズ設定
-            canvas.width = BLOCK_SIZE * 10;
+            // Canvasサイズ設定 (12 columns)
+            canvas.width = BLOCK_SIZE * 12;
             canvas.height = BLOCK_SIZE * 22;
 
             // Set next piece canvas size
@@ -542,7 +544,7 @@
 
         function draw() {
             context.fillStyle = '#000';
-            context.fillRect(0, 0, 10, 22); // Fill logical size
+            context.fillRect(0, 0, 12, 22); // Fill logical size (12 cols)
 
             drawMatrix(arena, {x: 0, y: 0}, context);
             if (player.matrix) drawMatrix(player.matrix, player.pos, context);
