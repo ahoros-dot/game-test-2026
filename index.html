@@ -13,7 +13,7 @@
             --neon-pink: #ff00ff;
             --neon-green: #0aff00;
             --neon-yellow: #fcee0a;
-            --panel-bg: rgba(10, 20, 30, 0.9);
+            --panel-bg: rgba(10, 20, 30, 0.95);
         }
 
         * {
@@ -68,9 +68,9 @@
             align-items: flex-start;
             justify-content: center;
             gap: 10px;
-            padding: 10px;
-            max-width: 100%;
-            max-height: 100%;
+            padding: 5px;
+            width: 100%;
+            height: 100%;
         }
 
         #game-container {
@@ -84,7 +84,6 @@
         canvas {
             background-color: rgba(0, 0, 0, 0.95);
             display: block;
-            /* Ensure aspect ratio is preserved even if container shrinks */
             max-width: 100%;
             height: auto;
         }
@@ -93,28 +92,32 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            width: 140px; /* Slightly wider for buttons */
+            width: 140px;
         }
 
         .stat-box {
             border-left: 4px solid var(--neon-pink);
-            padding: 8px;
+            padding: 5px 8px;
             background: rgba(0, 0, 0, 0.6);
             width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         .stat-label {
-            font-size: 0.7rem;
+            font-size: 0.6rem;
             color: var(--neon-pink);
             text-shadow: 0 0 5px var(--neon-pink);
-            margin-bottom: 2px;
             text-transform: uppercase;
+            line-height: 1;
         }
 
         .stat-value {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: #fff;
             text-shadow: 0 0 5px #fff;
+            line-height: 1.2;
         }
 
         #next-piece-canvas {
@@ -218,6 +221,8 @@
             background: rgba(0,0,0,0.5);
             border: 1px solid var(--neon-blue);
             padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
         }
         
         .ranking-item {
@@ -278,10 +283,11 @@
         }
 
         .small-btn {
-            padding: 8px;
-            font-size: 0.9rem;
-            margin-bottom: 5px;
+            padding: 2px 4px;
+            font-size: 0.7rem;
+            margin: 0;
             width: 100%;
+            height: 24px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -294,18 +300,20 @@
                 ". rot ."
                 "left down right"
                 "drop drop drop";
-            gap: 8px;
-            margin-top: 10px;
+            gap: 2px; /* Very tight gap */
+            margin-top: 2px;
+            width: 100%;
+            justify-content: center;
         }
 
         .ctrl-btn {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid var(--neon-blue);
             color: var(--neon-blue);
-            width: 55px;
-            height: 55px;
+            width: 42px; /* Compressed width */
+            height: 42px; /* Compressed height */
             border-radius: 50%;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -325,13 +333,13 @@
         .btn-down { grid-area: down; }
         .btn-drop { 
             grid-area: drop; 
-            width: 100%; 
-            height: 45px;
+            width: 100%;
+            height: 32px; /* Compressed drop button */
             border-radius: 8px; 
             border-color: var(--neon-pink);
             color: var(--neon-pink);
             box-shadow: 0 0 5px var(--neon-pink);
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: bold;
         }
         .btn-drop:active {
@@ -340,41 +348,59 @@
 
         /* Mobile Layout Adjustments */
         @media (max-width: 768px) {
+            body {
+                justify-content: flex-start; /* Align top to use space better */
+            }
+
             #game-layout {
                 flex-direction: column;
                 align-items: center;
-                gap: 5px;
-                padding: 5px;
+                gap: 2px;
+                padding: 0;
                 width: 100%;
             }
 
             #ui-panel {
                 flex-direction: row;
                 width: 100%;
-                justify-content: center;
-                gap: 10px;
-                order: -1; /* Move UI to top */
+                justify-content: space-between;
+                gap: 4px;
+                order: -1;
+                height: 30px; /* Minimal height for UI header */
+                padding: 0 4px;
+                margin-top: 2px;
+            }
+
+            .ui-buttons {
+                display: flex;
+                flex-direction: row; /* Horizontal on very top */
+                width: auto;
+                gap: 2px;
+            }
+            .small-btn {
+                width: 50px;
+                font-size: 0.6rem;
             }
 
             .stat-box {
                 width: auto;
-                min-width: 60px;
-                padding: 4px 8px;
-                flex-grow: 1;
+                min-width: 40px;
+                padding: 0 4px;
+                height: 100%;
+                border-left: 2px solid var(--neon-pink);
             }
+            .stat-label { font-size: 0.5rem; display: none; /* Hide labels to save space if needed, or keep tiny */ }
+            .stat-value { font-size: 0.8rem; }
             
             #next-piece-canvas {
-                width: 50px; /* Smaller next piece on mobile to save space */
-                height: 50px;
+                width: 28px;
+                height: 28px;
+                margin-top: 0;
             }
 
             #controls {
                 display: grid;
-            }
-            
-            .small-btn {
-                width: auto;
-                margin-bottom: 0;
+                margin-bottom: 2px;
             }
         }
     </style>
@@ -384,8 +410,11 @@
     <div id="game-layout">
         <!-- UI Panel -->
         <div id="ui-panel">
-            <button class="cyber-btn small-btn" id="pause-btn" onclick="togglePause()">PAUSE</button>
-            <button class="cyber-btn small-btn btn-reset" id="reset-btn" onclick="confirmReset()">RESET</button>
+            <div class="ui-buttons">
+                <button class="cyber-btn small-btn" id="pause-btn" onclick="togglePause()">PAUSE</button>
+                <button class="cyber-btn small-btn btn-reset" id="reset-btn" onclick="confirmReset()">RESET</button>
+            </div>
+            
             <div class="stat-box">
                 <div class="stat-label">Score</div>
                 <div class="stat-value" id="score">0</div>
@@ -394,9 +423,10 @@
                 <div class="stat-label">Level</div>
                 <div class="stat-value" id="level">1</div>
             </div>
-            <div class="stat-box" style="flex-grow: 0;">
-                <div class="stat-label">Next</div>
-                <canvas id="next-piece-canvas"></canvas>
+            
+            <!-- Next piece wrapper -->
+            <div style="height: 100%; display: flex; align-items: center;">
+                 <canvas id="next-piece-canvas"></canvas>
             </div>
         </div>
 
@@ -445,7 +475,6 @@
         const uiPanel = document.getElementById('ui-panel');
         const rankingList = document.getElementById('ranking-list');
 
-        // Initial setup handled by resize
         let BLOCK_SIZE = 30;
         const RANKING_KEY = 'cyber_tetris_ranking';
 
@@ -466,7 +495,6 @@
             if (type === 'T') return [[0, 7, 0], [7, 7, 7], [0, 0, 0]];
         }
 
-        // Expanded width to 12
         const arena = createMatrix(12, 22);
         let particles = [];
         let floatTexts = [];
@@ -488,40 +516,45 @@
         let isGameStarted = false;
         let animationId = null;
 
-        // Dynamic Resize Function
         function resizeGame() {
             const width = window.innerWidth;
             const height = window.innerHeight;
             const isMobile = width <= 768;
 
             let availableHeight, availableWidth;
-
-            const uiHeight = uiPanel ? uiPanel.offsetHeight : (isMobile ? 60 : 0);
-            const controlsHeight = (isMobile && controlsDiv) ? controlsDiv.offsetHeight : 0;
             
-            const marginX = 20;
-            const marginY = 20;
+            const marginX = 2; // Extremely small margins
+            const marginY = 4;
 
             if (isMobile) {
+                // Mobile Calculation
+                // UI Panel: 30px (CSS height)
+                const uiHeight = 34; // 30 + margin
+                // Controls:
+                // 3 rows: 42px * 3 + 2px gaps = ~130px
+                // + margin = ~135px
+                const controlsHeight = 135; 
+
                 const usedHeight = uiHeight + controlsHeight + marginY;
                 availableHeight = height - usedHeight;
                 availableWidth = width - marginX;
             } else {
-                availableHeight = height - marginY;
-                const uiWidth = uiPanel ? uiPanel.offsetWidth : 140;
-                availableWidth = width - uiWidth - marginX * 2;
+                // PC Calculation
+                availableHeight = height - 40; 
+                const uiWidth = 160; 
+                availableWidth = width - uiWidth - 40;
             }
 
             const sizeByHeight = Math.floor(availableHeight / 22);
             const sizeByWidth = Math.floor(availableWidth / 12);
             
             BLOCK_SIZE = Math.min(sizeByHeight, sizeByWidth);
-            BLOCK_SIZE = Math.max(10, BLOCK_SIZE);
+            BLOCK_SIZE = Math.max(10, BLOCK_SIZE); 
 
             canvas.width = BLOCK_SIZE * 12;
             canvas.height = BLOCK_SIZE * 22;
 
-            const nextSize = isMobile ? 50 : 120;
+            const nextSize = isMobile ? 28 : 120;
             nextCanvas.width = nextSize;
             nextCanvas.height = nextSize;
 
@@ -564,7 +597,7 @@
         function createFloatText(text, color) {
             floatTexts.push({
                 text: text,
-                x: canvas.width / 2, // Pixel coords
+                x: canvas.width / 2, 
                 y: canvas.height / 2,
                 vy: -2, life: 1.0, color: color, scale: 0.5
             });
@@ -581,24 +614,18 @@
             setTimeout(() => flashOverlay.style.opacity = '0', 100);
         }
 
-        // --- Ranking Logic ---
         function saveHighScore(score) {
             if (score === 0) return;
-            
             let ranking = JSON.parse(localStorage.getItem(RANKING_KEY)) || [];
             ranking.push(score);
-            // Sort descending
             ranking.sort((a, b) => b - a);
-            // Keep top 5
             ranking = ranking.slice(0, 5);
-            
             localStorage.setItem(RANKING_KEY, JSON.stringify(ranking));
         }
 
         function showRanking() {
             const ranking = JSON.parse(localStorage.getItem(RANKING_KEY)) || [];
             rankingList.innerHTML = '<div style="color:var(--neon-blue);margin-bottom:10px;text-align:center;">- TOP RECORDS -</div>';
-            
             if (ranking.length === 0) {
                 rankingList.innerHTML += '<div class="ranking-item" style="justify-content:center;">NO DATA</div>';
             } else {
@@ -653,7 +680,6 @@
             if (!player.next) return;
             nextContext.fillStyle = 'rgba(0,0,0,1)';
             nextContext.fillRect(0, 0, 5, 5); 
-            
             const offset = {
                 x: (5 - player.next[0].length) / 2,
                 y: (5 - player.next.length) / 2
@@ -697,7 +723,6 @@
             else matrix.reverse();
         }
 
-        // --- Safe Player Actions ---
         function playerDrop() {
             if (!isGameStarted || isPaused || isGameOver) return;
             player.pos.y++;
@@ -747,7 +772,6 @@
                 }
             }
         }
-        // ---------------------------
 
         function playerReset() {
             if (player.next === null) {
@@ -893,7 +917,7 @@
             if (isPaused) {
                 cancelAnimationFrame(animationId);
                 overlay.style.display = 'flex';
-                rankingList.style.display = 'none'; // Hide ranking on pause
+                rankingList.style.display = 'none'; 
                 overlayTitle.innerText = "SYSTEM PAUSED";
                 overlayTitle.style.color = "var(--neon-yellow)";
                 startBtn.innerText = "RESUME";
@@ -907,7 +931,6 @@
             }
         }
 
-        // Reset functionality
         function confirmReset() {
             if (confirm("REBOOT SYSTEM? (Score will be lost)")) {
                 startGame();
@@ -937,7 +960,6 @@
             pauseBtn.innerText = "PAUSE";
             
             playerReset();
-            // Need to resize again to ensure everything is fit
             resizeGame();
             update();
         }
@@ -956,7 +978,6 @@
             else if (event.keyCode === 32) hardDrop();
         });
         
-        // Touch controls setup
         function setupMobileControls() {
             let lastTouchTime = 0;
 
@@ -965,22 +986,17 @@
                 if (!btn) return;
                 
                 const handleTouch = (e) => {
-                    if (e.cancelable) e.preventDefault(); // マウスエミュレーション等のデフォルト動作を阻止
+                    if (e.cancelable) e.preventDefault();
                     lastTouchTime = Date.now();
                     action();
                 };
 
                 const handleMouse = (e) => {
-                    // タッチイベント発生から500ms以内のマウスイベントは、
-                    // スマホブラウザが生成した互換用イベントとみなして無視する
                     if (Date.now() - lastTouchTime < 500) return;
                     action();
                 };
 
-                // touchstart: 指が触れた瞬間に発火 (最速)
                 btn.addEventListener('touchstart', handleTouch, { passive: false });
-                
-                // mousedown: PC用。スマホではtouchstartの後に発火することがあるのでガードする
                 btn.addEventListener('mousedown', handleMouse);
             };
 
@@ -995,3 +1011,5 @@
     </script>
 </body>
 </html>
+
+
