@@ -93,7 +93,7 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            width: 120px;
+            width: 140px; /* Slightly wider for buttons */
         }
 
         .stat-box {
@@ -131,7 +131,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.9);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -175,6 +175,7 @@
             transition: all 0.2s;
             position: relative;
             overflow: hidden;
+            margin: 5px 0;
         }
 
         .cyber-btn:hover {
@@ -196,6 +197,46 @@
         
         .cyber-btn:hover::before {
             left: 100%;
+        }
+
+        /* Reset Button Specifics */
+        .btn-reset {
+            color: var(--neon-pink);
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 10px var(--neon-pink);
+        }
+        .btn-reset:hover {
+            background: var(--neon-pink);
+            box-shadow: 0 0 20px var(--neon-pink);
+        }
+
+        /* Ranking Styles */
+        #ranking-list {
+            margin: 20px 0;
+            width: 80%;
+            max-width: 300px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--neon-blue);
+            padding: 10px;
+        }
+        
+        .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(0, 243, 255, 0.3);
+            font-size: 1rem;
+        }
+        
+        .ranking-rank {
+            color: var(--neon-yellow);
+            font-weight: bold;
+            width: 30px;
+        }
+        
+        .ranking-score {
+            color: #fff;
+            text-shadow: 0 0 5px var(--neon-blue);
         }
 
         /* Shake Effect Animation */
@@ -344,6 +385,7 @@
         <!-- UI Panel -->
         <div id="ui-panel">
             <button class="cyber-btn small-btn" id="pause-btn" onclick="togglePause()">PAUSE</button>
+            <button class="cyber-btn small-btn btn-reset" id="reset-btn" onclick="confirmReset()">RESET</button>
             <div class="stat-box">
                 <div class="stat-label">Score</div>
                 <div class="stat-value" id="score">0</div>
@@ -364,6 +406,12 @@
             <canvas id="tetris"></canvas>
             <div id="overlay">
                 <div class="glitch-text" id="overlay-title">SYSTEM READY</div>
+                
+                <!-- Ranking Area -->
+                <div id="ranking-list" style="display:none;">
+                    <!-- Items injected by JS -->
+                </div>
+
                 <button class="cyber-btn" id="start-btn">INITIALIZE</button>
                 <div id="final-score" style="display:none; margin-top: 10px; color: #fff;"></div>
             </div>
@@ -395,9 +443,11 @@
         const flashOverlay = document.getElementById('flash-overlay');
         const controlsDiv = document.getElementById('controls');
         const uiPanel = document.getElementById('ui-panel');
+        const rankingList = document.getElementById('ranking-list');
 
         // Initial setup handled by resize
         let BLOCK_SIZE = 30;
+        const RANKING_KEY = 'cyber_tetris_ranking';
 
         const COLORS = [
             null,
@@ -446,11 +496,9 @@
 
             let availableHeight, availableWidth;
 
-            // UIパネルとコントロールの実サイズを取得
             const uiHeight = uiPanel ? uiPanel.offsetHeight : (isMobile ? 60 : 0);
             const controlsHeight = (isMobile && controlsDiv) ? controlsDiv.offsetHeight : 0;
             
-            // 安全マージン
             const marginX = 20;
             const marginY = 20;
 
@@ -464,31 +512,22 @@
                 availableWidth = width - uiWidth - marginX * 2;
             }
 
-            // ブロックサイズを計算 (小数点切り捨て)
             const sizeByHeight = Math.floor(availableHeight / 22);
-            // Changed divisor from 10 to 12 for wider arena
             const sizeByWidth = Math.floor(availableWidth / 12);
             
-            // 小さい方に合わせる（正方形を維持するため）
             BLOCK_SIZE = Math.min(sizeByHeight, sizeByWidth);
-            
-            // 最小サイズ保証
             BLOCK_SIZE = Math.max(10, BLOCK_SIZE);
 
-            // Canvasサイズ設定 (12 columns)
             canvas.width = BLOCK_SIZE * 12;
             canvas.height = BLOCK_SIZE * 22;
 
-            // Set next piece canvas size
-            const nextSize = isMobile ? 50 : 120; // Fixed pixel size for UI container
+            const nextSize = isMobile ? 50 : 120;
             nextCanvas.width = nextSize;
             nextCanvas.height = nextSize;
 
-            // Reset transform and apply new scale
             context.setTransform(1, 0, 0, 1, 0, 0);
             context.scale(BLOCK_SIZE, BLOCK_SIZE);
 
-            // Scale Next Context
             const nextBlockSize = nextSize / 5;
             nextContext.setTransform(1, 0, 0, 1, 0, 0);
             nextContext.scale(nextBlockSize, nextBlockSize);
@@ -525,7 +564,7 @@
         function createFloatText(text, color) {
             floatTexts.push({
                 text: text,
-                x: canvas.width / 2, // Pixel coords, independent of scale if we reset transform
+                x: canvas.width / 2, // Pixel coords
                 y: canvas.height / 2,
                 vy: -2, life: 1.0, color: color, scale: 0.5
             });
@@ -542,14 +581,44 @@
             setTimeout(() => flashOverlay.style.opacity = '0', 100);
         }
 
+        // --- Ranking Logic ---
+        function saveHighScore(score) {
+            if (score === 0) return;
+            
+            let ranking = JSON.parse(localStorage.getItem(RANKING_KEY)) || [];
+            ranking.push(score);
+            // Sort descending
+            ranking.sort((a, b) => b - a);
+            // Keep top 5
+            ranking = ranking.slice(0, 5);
+            
+            localStorage.setItem(RANKING_KEY, JSON.stringify(ranking));
+        }
+
+        function showRanking() {
+            const ranking = JSON.parse(localStorage.getItem(RANKING_KEY)) || [];
+            rankingList.innerHTML = '<div style="color:var(--neon-blue);margin-bottom:10px;text-align:center;">- TOP RECORDS -</div>';
+            
+            if (ranking.length === 0) {
+                rankingList.innerHTML += '<div class="ranking-item" style="justify-content:center;">NO DATA</div>';
+            } else {
+                ranking.forEach((score, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'ranking-item';
+                    div.innerHTML = `<span class="ranking-rank">#${index + 1}</span><span class="ranking-score">${score}</span>`;
+                    rankingList.appendChild(div);
+                });
+            }
+            rankingList.style.display = 'block';
+        }
+
         function draw() {
             context.fillStyle = '#000';
-            context.fillRect(0, 0, 12, 22); // Fill logical size (12 cols)
+            context.fillRect(0, 0, 12, 22);
 
             drawMatrix(arena, {x: 0, y: 0}, context);
             if (player.matrix) drawMatrix(player.matrix, player.pos, context);
 
-            // Particles
             particles.forEach(p => {
                 context.globalAlpha = p.life;
                 context.fillStyle = p.color;
@@ -559,12 +628,10 @@
             context.globalAlpha = 1.0;
             context.shadowBlur = 0;
 
-            // Floating Text
             if (floatTexts.length > 0) {
                 context.save();
-                context.setTransform(1, 0, 0, 1, 0, 0); // Reset to pixels for text
+                context.setTransform(1, 0, 0, 1, 0, 0);
                 floatTexts.forEach(ft => {
-                    // Adjust font size relative to canvas width
                     const fontSize = Math.max(20, canvas.width / 8); 
                     context.font = `900 ${fontSize + (1-ft.life)*10}px 'Orbitron'`;
                     context.textAlign = 'center';
@@ -584,10 +651,7 @@
 
         function drawNext() {
             if (!player.next) return;
-            // Fill with semi-transparent black
             nextContext.fillStyle = 'rgba(0,0,0,1)';
-            // Note: scale is set in resize, so we fill rectangle in logical coords.
-            // nextCanvas size is 5x5 blocks logical
             nextContext.fillRect(0, 0, 5, 5); 
             
             const offset = {
@@ -781,6 +845,10 @@
             isPaused = true;
             isGameStarted = false;
             cancelAnimationFrame(animationId);
+            
+            saveHighScore(player.score);
+            showRanking();
+
             overlay.style.display = 'flex';
             overlayTitle.innerText = "SYSTEM FAILURE";
             overlayTitle.style.color = "var(--neon-pink)";
@@ -825,6 +893,7 @@
             if (isPaused) {
                 cancelAnimationFrame(animationId);
                 overlay.style.display = 'flex';
+                rankingList.style.display = 'none'; // Hide ranking on pause
                 overlayTitle.innerText = "SYSTEM PAUSED";
                 overlayTitle.style.color = "var(--neon-yellow)";
                 startBtn.innerText = "RESUME";
@@ -835,6 +904,13 @@
                 pauseBtn.innerText = "PAUSE";
                 lastTime = performance.now();
                 update();
+            }
+        }
+
+        // Reset functionality
+        function confirmReset() {
+            if (confirm("REBOOT SYSTEM? (Score will be lost)")) {
+                startGame();
             }
         }
 
@@ -857,6 +933,7 @@
             
             isGameOver = false; isPaused = false; isGameStarted = true;
             overlay.style.display = 'none'; finalScoreElement.style.display = 'none';
+            rankingList.style.display = 'none';
             pauseBtn.innerText = "PAUSE";
             
             playerReset();
