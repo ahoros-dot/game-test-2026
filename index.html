@@ -1,1125 +1,479 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CYBER BLOCK PROTOCOL</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #050505;
-            --grid-color: #1a1a2e;
-            --neon-blue: #00f3ff;
-            --neon-pink: #ff00ff;
-            --neon-green: #0aff00;
-            --neon-yellow: #fcee0a;
-            --panel-bg: rgba(10, 20, 30, 0.95);
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>筋トレ管理アプリ</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f3f5f9;
+      --card: #ffffff;
+      --line: #d7deea;
+      --text: #1d2433;
+      --muted: #5f6b83;
+      --accent: #2f6ef9;
+      --danger: #d64545;
+      --ok: #1f9d58;
+    }
 
-        * {
-            box-sizing: border-box;
-            /* 重要: ダブルタップズームなどを無効化 */
-            touch-action: manipulation;
-        }
+    * { box-sizing: border-box; }
 
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
-            background-image: 
-                linear-gradient(var(--grid-color) 1px, transparent 1px),
-                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
-            background-size: 30px 30px;
-            color: #fff;
-            font-family: 'Orbitron', sans-serif;
-            height: 100vh;
-            width: 100vw;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            user-select: none;
-            -webkit-user-select: none;
-        }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      background: linear-gradient(180deg, #eff3ff 0%, var(--bg) 100%);
+      color: var(--text);
+    }
 
-        /* Scanline effect */
-        body::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: linear-gradient(
-                to bottom,
-                rgba(255,255,255,0),
-                rgba(255,255,255,0) 50%,
-                rgba(0,0,0,0.1) 50%,
-                rgba(0,0,0,0.1)
-            );
-            background-size: 100% 4px;
-            pointer-events: none;
-            z-index: 10;
-        }
+    .app {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+    }
 
-        #game-layout {
-            display: flex;
-            flex-direction: row;
-            align-items: flex-start;
-            justify-content: center;
-            gap: 10px;
-            padding: 5px;
-            width: 100%;
-            height: 100%;
-            position: relative;
-            z-index: 20;
-        }
+    h1 {
+      margin: 0;
+      font-size: clamp(1.4rem, 2vw + 1rem, 2rem);
+    }
 
-        #game-container {
-            position: relative;
-            border: 2px solid var(--neon-blue);
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2), inset 0 0 15px rgba(0, 243, 255, 0.1);
-            background: var(--panel-bg);
-            /* Dimensions are handled by JS resize */
-        }
+    .sub {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
 
-        canvas {
-            background-color: rgba(0, 0, 0, 0.95);
-            display: block;
-            max-width: 100%;
-            height: auto;
-        }
+    .grid {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 16px;
+    }
 
-        #ui-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            width: 140px;
-        }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 8px 20px rgba(24, 47, 109, 0.06);
+      padding: 14px;
+    }
 
-        .stat-box {
-            border-left: 4px solid var(--neon-pink);
-            padding: 5px 8px;
-            background: rgba(0, 0, 0, 0.6);
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
+    .card h2 {
+      margin: 2px 0 12px;
+      font-size: 1.1rem;
+    }
 
-        .stat-label {
-            font-size: 0.6rem;
-            color: var(--neon-pink);
-            text-shadow: 0 0 5px var(--neon-pink);
-            text-transform: uppercase;
-            line-height: 1;
-        }
+    label {
+      display: block;
+      margin: 10px 0 6px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
 
-        .stat-value {
-            font-size: 1.1rem;
-            color: #fff;
-            text-shadow: 0 0 5px #fff;
-            line-height: 1.2;
-        }
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 11px;
+      font-size: 0.95rem;
+      color: var(--text);
+      background: #fff;
+    }
 
-        #next-piece-canvas {
-            width: 100%;
-            aspect-ratio: 1;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid #333;
-        }
+    textarea { min-height: 68px; resize: vertical; }
 
-        /* Overlay Styles */
-        #overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 100; /* High z-index */
-            backdrop-filter: blur(4px);
-        }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
 
-        .glitch-text {
-            font-size: clamp(2rem, 5vw, 3rem);
-            font-weight: 900;
-            color: var(--neon-blue);
-            text-shadow: 2px 2px var(--neon-pink);
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            position: relative;
-            animation: glitch 1s infinite alternate;
-            text-align: center;
-        }
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
 
-        @keyframes glitch {
-            0% { transform: translate(0); text-shadow: 2px 2px var(--neon-pink); }
-            20% { transform: translate(-2px, 2px); text-shadow: -2px -2px var(--neon-green); }
-            40% { transform: translate(2px, -2px); text-shadow: 2px -2px var(--neon-pink); }
-            60% { transform: translate(0); text-shadow: 2px 2px var(--neon-blue); }
-            80% { transform: translate(-2px, 0); text-shadow: -2px 2px var(--neon-green); }
-            100% { transform: translate(2px, 0); text-shadow: 2px -2px var(--neon-pink); }
-        }
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
 
-        .cyber-btn {
-            background: transparent;
-            color: var(--neon-green);
-            border: 2px solid var(--neon-green);
-            padding: 10px 20px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            box-shadow: 0 0 10px var(--neon-green);
-            transition: all 0.2s;
-            position: relative;
-            overflow: hidden;
-            margin: 5px 0;
-        }
+    .primary { background: var(--accent); color: #fff; }
+    .ghost { background: #e9eefc; color: #284890; }
+    .danger { background: #ffe5e5; color: var(--danger); }
 
-        .cyber-btn:hover {
-            background: var(--neon-green);
-            color: #000;
-            box-shadow: 0 0 20px var(--neon-green);
-        }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(120px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
 
-        .cyber-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
-            transition: 0.5s;
-        }
-        
-        .cyber-btn:hover::before {
-            left: 100%;
-        }
+    .stat {
+      background: #f8faff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+    }
 
-        /* Reset Button Specifics */
-        .btn-reset {
-            color: var(--neon-pink);
-            border-color: var(--neon-pink);
-            box-shadow: 0 0 10px var(--neon-pink);
-        }
-        .btn-reset:hover {
-            background: var(--neon-pink);
-            box-shadow: 0 0 20px var(--neon-pink);
-        }
+    .stat .k { color: var(--muted); font-size: 0.82rem; }
+    .stat .v { font-size: 1.35rem; font-weight: 800; margin-top: 2px; }
 
-        /* Level Selector Styles */
-        .level-select-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin: 10px 0 20px 0;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 10px 20px;
-            border: 1px solid var(--neon-blue);
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
-            border-radius: 5px;
-        }
+    .list {
+      display: grid;
+      gap: 10px;
+    }
 
-        .level-btn {
-            width: 40px;
-            height: 40px;
-            font-size: 1.5rem;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-            border-radius: 5px;
-        }
+    .item {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+    }
 
-        /* Ranking Styles */
-        #ranking-list {
-            margin: 10px 0;
-            width: 80%;
-            max-width: 300px;
-            background: rgba(0,0,0,0.5);
-            border: 1px solid var(--neon-blue);
-            padding: 10px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
-        .ranking-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid rgba(0, 243, 255, 0.3);
-            font-size: 1rem;
-        }
-        
-        .ranking-rank {
-            color: var(--neon-yellow);
-            font-weight: bold;
-            width: 40px;
-        }
-        
-        .ranking-score {
-            color: #fff;
-            text-shadow: 0 0 5px var(--neon-blue);
-        }
+    .item-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
 
-        /* Highlight for current score */
-        .highlight-score {
-            color: var(--neon-pink);
-            text-shadow: 0 0 10px var(--neon-pink);
-            animation: pulse 1s infinite alternate;
-            font-weight: 900;
-            border-bottom: 1px solid var(--neon-pink);
-        }
-        
-        .highlight-score .ranking-score {
-            color: var(--neon-pink);
-            text-shadow: 0 0 10px var(--neon-pink);
-        }
+    .item-title {
+      margin: 0;
+      font-size: 1.05rem;
+    }
 
-        @keyframes pulse {
-            0% { opacity: 1; transform: scale(1); }
-            100% { opacity: 0.8; transform: scale(1.02); }
-        }
+    .meta {
+      color: var(--muted);
+      font-size: 0.86rem;
+      margin-top: 4px;
+    }
 
-        /* Shake Effect Animation */
-        @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(3px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            70% { transform: translate(3px, 1px) rotate(-1deg); }
-            80% { transform: translate(-1px, -1px) rotate(1deg); }
-            90% { transform: translate(1px, 2px) rotate(0deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
-        }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 2px 9px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      border: 1px solid;
+    }
 
-        .shake-effect {
-            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
-        }
-        
-        .shake-hard {
-            animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both;
-            animation-iteration-count: 2;
-        }
+    .tag.done {
+      color: var(--ok);
+      border-color: #a8e7c3;
+      background: #ebfff3;
+    }
 
-        #flash-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #fff;
-            opacity: 0;
-            pointer-events: none;
-            z-index: 15;
-            transition: opacity 0.1s ease-out;
-            mix-blend-mode: overlay;
-        }
+    .tag.todo {
+      color: #906625;
+      border-color: #f2d9aa;
+      background: #fff7e8;
+    }
 
-        .small-btn {
-            padding: 2px 4px;
-            font-size: 0.7rem;
-            margin: 0;
-            width: 100%;
-            height: 24px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+    .item-actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .item-actions button { font-size: 0.82rem; padding: 8px 10px; }
 
-        /* Controls (Mobile Friendly) */
-        #controls {
-            display: none; 
-            /* 3 columns for arrows, 1 wider column for Drop */
-            grid-template-columns: repeat(3, 1fr) 1.2fr; 
-            grid-template-rows: 50px 50px;
-            grid-template-areas: 
-                ".    rot   .     drop"
-                "left down  right drop";
-            gap: 2px;
-            margin-top: 5px;
-            width: 100%;
-            max-width: 400px;
-            justify-content: center;
-            
-            /* Ensure controls are clickable and on top */
-            position: relative;
-            z-index: 50; 
-            touch-action: none; /* Disable browser zooming/scrolling */
-        }
+    .empty {
+      border: 1px dashed var(--line);
+      border-radius: 12px;
+      padding: 18px;
+      text-align: center;
+      color: var(--muted);
+      background: #fbfcff;
+    }
 
-        .ctrl-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--neon-blue);
-            color: var(--neon-blue);
-            width: 100%;
-            height: 100%;
-            border-radius: 10px;
-            font-size: 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            user-select: none;
-            box-shadow: 0 0 5px var(--neon-blue);
-            -webkit-tap-highlight-color: transparent;
-            /* Disable touch actions on buttons too */
-            touch-action: none;
-        }
-
-        .ctrl-btn:active {
-            background: var(--neon-blue);
-            color: #000;
-        }
-
-        .btn-up { grid-area: rot; }
-        .btn-left { grid-area: left; }
-        .btn-right { grid-area: right; }
-        .btn-down { grid-area: down; }
-        .btn-drop { 
-            grid-area: drop; 
-            border-color: var(--neon-pink);
-            color: var(--neon-pink);
-            box-shadow: 0 0 5px var(--neon-pink);
-            font-size: 2rem;
-            font-weight: bold;
-        }
-        .btn-drop:active {
-            background: var(--neon-pink);
-        }
-
-        /* Mobile Layout Adjustments */
-        @media (max-width: 768px) {
-            body {
-                justify-content: flex-start;
-            }
-
-            #game-layout {
-                flex-direction: column;
-                align-items: center;
-                gap: 2px;
-                padding: 0;
-                width: 100%;
-                /* Make sure layout takes full height but allows controls to sit at bottom if needed */
-                height: 100%; 
-                overflow: hidden;
-            }
-
-            #ui-panel {
-                flex-direction: row;
-                width: 100%;
-                justify-content: space-between;
-                gap: 4px;
-                order: -1;
-                height: 30px;
-                padding: 0 4px;
-                margin-top: 2px;
-                flex-shrink: 0; /* Prevent shrinking */
-            }
-
-            .ui-buttons {
-                display: flex;
-                flex-direction: row;
-                width: auto;
-                gap: 2px;
-            }
-            .small-btn {
-                width: 50px;
-                font-size: 0.6rem;
-            }
-
-            .stat-box {
-                width: auto;
-                min-width: 40px;
-                padding: 0 4px;
-                height: 100%;
-                border-left: 2px solid var(--neon-pink);
-            }
-            .stat-label { display: none; }
-            .stat-value { font-size: 0.8rem; }
-            
-            #next-piece-canvas {
-                width: 28px;
-                height: 28px;
-                margin-top: 0;
-            }
-
-            #game-container {
-                /* Ensure container doesn't overflow */
-                flex-shrink: 1;
-                overflow: hidden;
-            }
-
-            #controls {
-                display: grid;
-                margin-bottom: 5px;
-                flex-shrink: 0; /* Controls must retain size */
-                padding-bottom: 5px; /* Safe area */
-            }
-        }
-    </style>
+    @media (max-width: 860px) {
+      .grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
 </head>
 <body>
+  <main class="app">
+    <h1>筋トレ管理アプリ</h1>
+    <p class="sub">種目ごとの回数・重量・メモを記録して、日々のトレーニングを見える化します。</p>
 
-    <div id="game-layout">
-        <!-- UI Panel -->
-        <div id="ui-panel">
-            <div class="ui-buttons">
-                <button class="cyber-btn small-btn" id="pause-btn" onclick="togglePause()">PAUSE</button>
-                <button class="cyber-btn small-btn btn-reset" id="reset-btn" onclick="resetGame()">RESET</button>
+    <section class="grid">
+      <article class="card">
+        <h2 id="formTitle">メニューを追加</h2>
+        <form id="workoutForm">
+          <label for="name">種目名</label>
+          <input id="name" name="name" required placeholder="例: ベンチプレス" />
+
+          <div class="row">
+            <div>
+              <label for="sets">セット数</label>
+              <input id="sets" name="sets" type="number" min="1" required value="3" />
             </div>
-            
-            <div class="stat-box">
-                <div class="stat-label">Score</div>
-                <div class="stat-value" id="score">0</div>
+            <div>
+              <label for="reps">回数（1セット）</label>
+              <input id="reps" name="reps" type="number" min="1" required value="10" />
             </div>
-            <div class="stat-box">
-                <div class="stat-label">Level</div>
-                <div class="stat-value" id="level">1</div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label for="weight">重量 (kg)</label>
+              <input id="weight" name="weight" type="number" min="0" step="0.5" value="0" />
             </div>
-            
-            <!-- Next piece wrapper -->
-            <div style="height: 100%; display: flex; align-items: center;">
-                 <canvas id="next-piece-canvas"></canvas>
+            <div>
+              <label for="date">実施日</label>
+              <input id="date" name="date" type="date" required />
             </div>
+          </div>
+
+          <label for="note">メモ</label>
+          <textarea id="note" name="note" placeholder="フォームや体調など"></textarea>
+
+          <div class="btn-row">
+            <button class="primary" type="submit" id="submitBtn">追加する</button>
+            <button class="ghost" type="button" id="cancelEditBtn" hidden>編集をキャンセル</button>
+          </div>
+        </form>
+      </article>
+
+      <article class="card">
+        <h2>記録一覧</h2>
+        <div class="stats">
+          <div class="stat"><div class="k">総メニュー数</div><div class="v" id="totalCount">0</div></div>
+          <div class="stat"><div class="k">完了数</div><div class="v" id="doneCount">0</div></div>
+          <div class="stat"><div class="k">推定総挙上量(kg)</div><div class="v" id="volume">0</div></div>
         </div>
 
-        <!-- Game Container -->
-        <div id="game-container">
-            <div id="flash-overlay"></div>
-            <canvas id="tetris"></canvas>
-            <div id="overlay">
-                <div class="glitch-text" id="overlay-title">SYSTEM READY</div>
-                
-                <!-- Level Selector -->
-                <div class="level-select-container" id="level-selector">
-                    <span style="color: var(--neon-blue); font-weight: bold; margin-right: 5px;">LEVEL</span>
-                    <button class="cyber-btn level-btn" id="lvl-down">-</button>
-                    <span id="start-level-display" style="color: #fff; font-size: 1.5rem; font-weight: bold; width: 40px; text-align: center;">1</span>
-                    <button class="cyber-btn level-btn" id="lvl-up">+</button>
-                </div>
+        <div class="btn-row" style="margin-bottom: 12px;">
+          <button class="ghost" id="sortBtn" type="button">日付で並び替え（新しい順）</button>
+          <button class="danger" id="clearBtn" type="button">全件削除</button>
+        </div>
 
-                <!-- Ranking Area -->
-                <div id="ranking-list" style="display:none;">
-                    <!-- Items injected by JS -->
-                </div>
+        <div class="list" id="workoutList"></div>
+      </article>
+    </section>
+  </main>
 
-                <button class="cyber-btn" id="start-btn">INITIALIZE</button>
-                <div id="final-score" style="display:none; margin-top: 10px; color: #fff;"></div>
+  <script>
+    const STORAGE_KEY = "workout-tracker-v1";
+    const state = {
+      workouts: [],
+      editingId: null,
+      sortDesc: true,
+    };
+
+    const form = document.getElementById("workoutForm");
+    const formTitle = document.getElementById("formTitle");
+    const submitBtn = document.getElementById("submitBtn");
+    const cancelEditBtn = document.getElementById("cancelEditBtn");
+    const workoutList = document.getElementById("workoutList");
+    const totalCount = document.getElementById("totalCount");
+    const doneCount = document.getElementById("doneCount");
+    const volume = document.getElementById("volume");
+    const sortBtn = document.getElementById("sortBtn");
+    const clearBtn = document.getElementById("clearBtn");
+
+    function setToday() {
+      if (!form.date.value) {
+        const today = new Date().toISOString().slice(0, 10);
+        form.date.value = today;
+      }
+    }
+
+    function escapeHTML(str = "") {
+      return str
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function loadWorkouts() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        state.workouts = saved ? JSON.parse(saved) : [];
+      } catch {
+        state.workouts = [];
+      }
+    }
+
+    function saveWorkouts() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.workouts));
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      if (Number.isNaN(date.getTime())) return "日付不明";
+      return date.toLocaleDateString("ja-JP", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    }
+
+    function calcVolume(item) {
+      return item.sets * item.reps * item.weight;
+    }
+
+    function renderStats() {
+      totalCount.textContent = String(state.workouts.length);
+      const done = state.workouts.filter((item) => item.done).length;
+      doneCount.textContent = String(done);
+      const totalVolume = Math.round(
+        state.workouts.reduce((sum, item) => sum + calcVolume(item), 0)
+      );
+      volume.textContent = totalVolume.toLocaleString("ja-JP");
+    }
+
+    function getSortedWorkouts() {
+      const clone = [...state.workouts];
+      clone.sort((a, b) => {
+        const timeA = new Date(a.date).getTime();
+        const timeB = new Date(b.date).getTime();
+        return state.sortDesc ? timeB - timeA : timeA - timeB;
+      });
+      return clone;
+    }
+
+    function renderList() {
+      const items = getSortedWorkouts();
+
+      if (!items.length) {
+        workoutList.innerHTML = '<div class="empty">まだ記録がありません。左のフォームから追加してください。</div>';
+        return;
+      }
+
+      workoutList.innerHTML = items
+        .map((item) => `
+          <article class="item">
+            <div class="item-head">
+              <h3 class="item-title">${escapeHTML(item.name)}</h3>
+              <span class="tag ${item.done ? "done" : "todo"}">${item.done ? "完了" : "未完了"}</span>
             </div>
-        </div>
+            <div class="meta">${formatDate(item.date)} ・ ${item.sets}セット × ${item.reps}回 ・ ${item.weight}kg</div>
+            ${item.note ? `<div class="meta">メモ: ${escapeHTML(item.note)}</div>` : ""}
+            <div class="meta">推定挙上量: ${Math.round(calcVolume(item)).toLocaleString("ja-JP")}kg</div>
+            <div class="item-actions">
+              <button class="ghost" type="button" onclick="toggleDone('${item.id}')">${item.done ? "未完了に戻す" : "完了にする"}</button>
+              <button class="ghost" type="button" onclick="startEdit('${item.id}')">編集</button>
+              <button class="danger" type="button" onclick="removeWorkout('${item.id}')">削除</button>
+            </div>
+          </article>
+        `)
+        .join("");
+    }
 
-        <!-- Controls (Mobile) -->
-        <div id="controls">
-            <button class="ctrl-btn btn-up">↻</button>
-            <button class="ctrl-btn btn-left">←</button>
-            <button class="ctrl-btn btn-down">↓</button>
-            <button class="ctrl-btn btn-right">→</button>
-            <button class="ctrl-btn btn-drop">⇊</button>
-        </div>
-    </div>
+    function resetForm() {
+      form.reset();
+      setToday();
+      state.editingId = null;
+      formTitle.textContent = "メニューを追加";
+      submitBtn.textContent = "追加する";
+      cancelEditBtn.hidden = true;
+    }
 
-    <script>
-        const canvas = document.getElementById('tetris');
-        const context = canvas.getContext('2d');
-        const nextCanvas = document.getElementById('next-piece-canvas');
-        const nextContext = nextCanvas.getContext('2d');
-        const overlay = document.getElementById('overlay');
-        const overlayTitle = document.getElementById('overlay-title');
-        const startBtn = document.getElementById('start-btn');
-        const pauseBtn = document.getElementById('pause-btn');
-        const scoreElement = document.getElementById('score');
-        const levelElement = document.getElementById('level');
-        const finalScoreElement = document.getElementById('final-score');
-        const gameContainer = document.getElementById('game-container');
-        const flashOverlay = document.getElementById('flash-overlay');
-        const controlsDiv = document.getElementById('controls');
-        const uiPanel = document.getElementById('ui-panel');
-        const rankingList = document.getElementById('ranking-list');
-        const startLevelDisplay = document.getElementById('start-level-display');
-        const lvlUpBtn = document.getElementById('lvl-up');
-        const lvlDownBtn = document.getElementById('lvl-down');
-        const levelSelector = document.getElementById('level-selector');
-
-        let BLOCK_SIZE = 30;
-        const RANKING_KEY = 'cyber_tetris_ranking';
-        let startLevel = 1;
-
-        const COLORS = [
-            null,
-            '#FF0D72', '#0DC2FF', '#0DFF72', '#F538FF', '#FF8E0D', '#FFE138', '#3877FF'
-        ];
-
-        const PIECES = 'ILJOTSZ';
-        
-        function createPiece(type) {
-            if (type === 'I') return [[0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0]];
-            if (type === 'L') return [[0, 2, 0], [0, 2, 0], [0, 2, 2]];
-            if (type === 'J') return [[0, 3, 0], [0, 3, 0], [3, 3, 0]];
-            if (type === 'O') return [[4, 4], [4, 4]];
-            if (type === 'Z') return [[5, 5, 0], [0, 5, 5], [0, 0, 0]];
-            if (type === 'S') return [[0, 6, 6], [6, 6, 0], [0, 0, 0]];
-            if (type === 'T') return [[0, 7, 0], [7, 7, 7], [0, 0, 0]];
-        }
-
-        const arena = createMatrix(12, 22);
-        let particles = [];
-        let floatTexts = [];
-
-        const player = {
-            pos: {x: 0, y: 0},
-            matrix: null,
-            score: 0,
-            level: 1,
-            lines: 0,
-            next: null,
-        };
-
-        let dropCounter = 0;
-        let dropInterval = 1000;
-        let lastTime = 0;
-        let isPaused = true;
-        let isGameOver = false;
-        let isGameStarted = false;
-        let animationId = null;
-
-        // Level Selector Logic
-        function updateStartLevel(change) {
-            startLevel += change;
-            if (startLevel < 1) startLevel = 1;
-            if (startLevel > 20) startLevel = 20;
-            startLevelDisplay.innerText = startLevel;
-        }
-
-        lvlUpBtn.addEventListener('click', () => updateStartLevel(1));
-        lvlDownBtn.addEventListener('click', () => updateStartLevel(-1));
-
-        function resizeGame() {
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            const isMobile = width <= 768;
-
-            let availableHeight, availableWidth;
-            
-            const marginX = 2; 
-            const marginY = 4;
-
-            if (isMobile) {
-                // Mobile Calculation
-                const uiHeight = 34; // Header height
-                
-                // Controls: 2 rows of 50px + gap 2px + margin = ~110px
-                // + Extra safety margin for address bars etc.
-                const controlsHeight = 140; 
-
-                const usedHeight = uiHeight + controlsHeight + marginY;
-                availableHeight = height - usedHeight;
-                availableWidth = width - marginX;
-            } else {
-                // PC Calculation
-                availableHeight = height - 40; 
-                const uiWidth = 160; 
-                availableWidth = width - uiWidth - 40;
-            }
-
-            const sizeByHeight = Math.floor(availableHeight / 22);
-            const sizeByWidth = Math.floor(availableWidth / 12);
-            
-            // ブロックサイズを計算 (85%は廃止して画面に収まる最大値を使用、ただし余白確保で小さくなる)
-            BLOCK_SIZE = Math.min(sizeByHeight, sizeByWidth);
-            BLOCK_SIZE = Math.max(10, BLOCK_SIZE); 
-
-            canvas.width = BLOCK_SIZE * 12;
-            canvas.height = BLOCK_SIZE * 22;
-
-            const nextSize = isMobile ? 28 : 120;
-            nextCanvas.width = nextSize;
-            nextCanvas.height = nextSize;
-
-            context.setTransform(1, 0, 0, 1, 0, 0);
-            context.scale(BLOCK_SIZE, BLOCK_SIZE);
-
-            const nextBlockSize = nextSize / 5;
-            nextContext.setTransform(1, 0, 0, 1, 0, 0);
-            nextContext.scale(nextBlockSize, nextBlockSize);
-
-            draw();
-            if(player.next) drawNext();
-        }
-
-        window.addEventListener('resize', resizeGame);
-        window.addEventListener('load', () => {
-            setTimeout(resizeGame, 100);
+    function upsertWorkout(payload) {
+      if (state.editingId) {
+        state.workouts = state.workouts.map((item) =>
+          item.id === state.editingId ? { ...item, ...payload } : item
+        );
+      } else {
+        state.workouts.unshift({
+          ...payload,
+          id: crypto.randomUUID(),
+          done: false,
+          createdAt: new Date().toISOString(),
         });
+      }
 
-        function createMatrix(w, h) {
-            const matrix = [];
-            while (h--) matrix.push(new Array(w).fill(0));
-            return matrix;
-        }
+      saveWorkouts();
+      render();
+      resetForm();
+    }
 
-        function createParticles(x, y, colorIdx) {
-            const color = COLORS[colorIdx] || '#fff';
-            for (let i = 0; i < 8; i++) {
-                particles.push({
-                    x: x + 0.5, y: y + 0.5,
-                    vx: (Math.random() - 0.5) * 0.8,
-                    vy: (Math.random() - 0.5) * 0.8,
-                    size: Math.random() * 0.15 + 0.05,
-                    life: 1.0, decay: Math.random() * 0.03 + 0.02,
-                    color: color
-                });
-            }
-        }
+    function render() {
+      renderStats();
+      renderList();
+      sortBtn.textContent = `日付で並び替え（${state.sortDesc ? "新しい順" : "古い順"}）`;
+    }
 
-        function createFloatText(text, color) {
-            floatTexts.push({
-                text: text,
-                x: canvas.width / 2, 
-                y: canvas.height / 2,
-                vy: -2, life: 1.0, color: color, scale: 0.5
-            });
-        }
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
 
-        function triggerShake(isHard = false) {
-            gameContainer.classList.remove('shake-effect', 'shake-hard');
-            void gameContainer.offsetWidth;
-            gameContainer.classList.add(isHard ? 'shake-hard' : 'shake-effect');
-        }
+      const payload = {
+        name: form.name.value.trim(),
+        sets: Number(form.sets.value),
+        reps: Number(form.reps.value),
+        weight: Number(form.weight.value || 0),
+        date: form.date.value,
+        note: form.note.value.trim(),
+      };
 
-        function triggerFlash() {
-            flashOverlay.style.opacity = '0.8';
-            setTimeout(() => flashOverlay.style.opacity = '0', 100);
-        }
+      if (!payload.name || payload.sets < 1 || payload.reps < 1 || !payload.date) {
+        alert("入力内容を確認してください。");
+        return;
+      }
 
-        function getRankingWithCurrent(currentScore) {
-            let ranking = JSON.parse(localStorage.getItem(RANKING_KEY)) || [];
-            let displayRanking = ranking.map(s => ({ score: s, isCurrent: false }));
-            if (currentScore > 0) {
-                displayRanking.push({ score: currentScore, isCurrent: true });
-            }
-            displayRanking.sort((a, b) => b.score - a.score);
-            displayRanking = displayRanking.slice(0, 10);
-            
-            const saveScores = displayRanking.map(item => item.score);
-            localStorage.setItem(RANKING_KEY, JSON.stringify(saveScores));
-            
-            return displayRanking;
-        }
+      upsertWorkout(payload);
+    });
 
-        function showRanking(displayRanking) {
-            rankingList.innerHTML = '<div style="color:var(--neon-blue);margin-bottom:10px;text-align:center;">- TOP RECORDS -</div>';
-            if (displayRanking.length === 0) {
-                rankingList.innerHTML += '<div class="ranking-item" style="justify-content:center;">NO DATA</div>';
-            } else {
-                displayRanking.forEach((item, index) => {
-                    const div = document.createElement('div');
-                    div.className = 'ranking-item';
-                    if (item.isCurrent) {
-                        div.classList.add('highlight-score');
-                        div.innerHTML = `<span class="ranking-rank">#${index + 1}</span><span class="ranking-score">YOU > ${item.score}</span>`;
-                    } else {
-                        div.innerHTML = `<span class="ranking-rank">#${index + 1}</span><span class="ranking-score">${item.score}</span>`;
-                    }
-                    rankingList.appendChild(div);
-                });
-            }
-            rankingList.style.display = 'block';
-        }
+    sortBtn.addEventListener("click", () => {
+      state.sortDesc = !state.sortDesc;
+      render();
+    });
 
-        function draw() {
-            context.fillStyle = '#000';
-            context.fillRect(0, 0, 12, 22);
+    clearBtn.addEventListener("click", () => {
+      if (!state.workouts.length) return;
+      if (!confirm("記録をすべて削除します。よろしいですか？")) return;
+      state.workouts = [];
+      saveWorkouts();
+      render();
+      resetForm();
+    });
 
-            drawMatrix(arena, {x: 0, y: 0}, context);
-            if (player.matrix) drawMatrix(player.matrix, player.pos, context);
+    cancelEditBtn.addEventListener("click", resetForm);
 
-            particles.forEach(p => {
-                context.globalAlpha = p.life;
-                context.fillStyle = p.color;
-                context.fillRect(p.x, p.y, p.size, p.size);
-                context.shadowBlur = 5; context.shadowColor = p.color;
-            });
-            context.globalAlpha = 1.0;
-            context.shadowBlur = 0;
+    window.startEdit = (id) => {
+      const item = state.workouts.find((x) => x.id === id);
+      if (!item) return;
+      state.editingId = id;
+      form.name.value = item.name;
+      form.sets.value = item.sets;
+      form.reps.value = item.reps;
+      form.weight.value = item.weight;
+      form.date.value = item.date;
+      form.note.value = item.note || "";
+      formTitle.textContent = "メニューを編集";
+      submitBtn.textContent = "更新する";
+      cancelEditBtn.hidden = false;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
 
-            if (floatTexts.length > 0) {
-                context.save();
-                context.setTransform(1, 0, 0, 1, 0, 0);
-                floatTexts.forEach(ft => {
-                    const fontSize = Math.max(20, canvas.width / 8); 
-                    context.font = `900 ${fontSize + (1-ft.life)*10}px 'Orbitron'`;
-                    context.textAlign = 'center';
-                    context.textBaseline = 'middle';
-                    context.fillStyle = ft.color;
-                    context.globalAlpha = ft.life;
-                    context.shadowColor = ft.color;
-                    context.shadowBlur = 10;
-                    context.strokeStyle = '#fff';
-                    context.lineWidth = 2;
-                    context.strokeText(ft.text, ft.x, ft.y);
-                    context.fillText(ft.text, ft.x, ft.y);
-                });
-                context.restore();
-            }
-        }
+    window.removeWorkout = (id) => {
+      const item = state.workouts.find((x) => x.id === id);
+      if (!item) return;
+      if (!confirm(`「${item.name}」を削除しますか？`)) return;
+      state.workouts = state.workouts.filter((x) => x.id !== id);
+      saveWorkouts();
+      if (state.editingId === id) resetForm();
+      render();
+    };
 
-        function drawNext() {
-            if (!player.next) return;
-            nextContext.fillStyle = 'rgba(0,0,0,1)';
-            nextContext.fillRect(0, 0, 5, 5); 
-            const offset = {
-                x: (5 - player.next[0].length) / 2,
-                y: (5 - player.next.length) / 2
-            };
-            drawMatrix(player.next, offset, nextContext);
-        }
+    window.toggleDone = (id) => {
+      state.workouts = state.workouts.map((item) =>
+        item.id === id ? { ...item, done: !item.done } : item
+      );
+      saveWorkouts();
+      render();
+    };
 
-        function drawMatrix(matrix, offset, ctx) {
-            matrix.forEach((row, y) => {
-                row.forEach((value, x) => {
-                    if (value !== 0) {
-                        ctx.fillStyle = COLORS[value];
-                        ctx.fillRect(x + offset.x, y + offset.y, 1, 1);
-                        ctx.lineWidth = 0.05;
-                        ctx.strokeStyle = '#fff';
-                        ctx.strokeRect(x + offset.x, y + offset.y, 1, 1);
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-                        ctx.fillRect(x + offset.x + 0.2, y + offset.y + 0.2, 0.6, 0.6);
-                    }
-                });
-            });
-        }
-
-        function merge(arena, player) {
-            player.matrix.forEach((row, y) => {
-                row.forEach((value, x) => {
-                    if (value !== 0) {
-                        arena[y + player.pos.y][x + player.pos.x] = value;
-                    }
-                });
-            });
-        }
-
-        function rotate(matrix, dir) {
-            for (let y = 0; y < matrix.length; ++y) {
-                for (let x = 0; x < y; ++x) {
-                    [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
-                }
-            }
-            if (dir > 0) matrix.forEach(row => row.reverse());
-            else matrix.reverse();
-        }
-
-        function playerDrop() {
-            if (!isGameStarted || isPaused || isGameOver) return;
-            player.pos.y++;
-            if (collide(arena, player)) {
-                player.pos.y--;
-                merge(arena, player);
-                playerReset();
-                arenaSweep();
-                updateScore();
-            }
-            dropCounter = 0;
-        }
-
-        function hardDrop() {
-            if (!isGameStarted || isPaused || isGameOver) return;
-            while (!collide(arena, player)) {
-                player.pos.y++;
-            }
-            player.pos.y--;
-            merge(arena, player);
-            playerReset();
-            arenaSweep();
-            updateScore();
-            dropCounter = 0;
-        }
-
-        function playerMove(offset) {
-            if (!isGameStarted || isPaused || isGameOver) return;
-            player.pos.x += offset;
-            if (collide(arena, player)) {
-                player.pos.x -= offset;
-            }
-        }
-
-        function playerRotate(dir) {
-            if (!isGameStarted || isPaused || isGameOver) return;
-            const pos = player.pos.x;
-            let offset = 1;
-            rotate(player.matrix, dir);
-            while (collide(arena, player)) {
-                player.pos.x += offset;
-                offset = -(offset + (offset > 0 ? 1 : -1));
-                if (offset > player.matrix[0].length) {
-                    rotate(player.matrix, -dir);
-                    player.pos.x = pos;
-                    return;
-                }
-            }
-        }
-
-        function playerReset() {
-            if (player.next === null) {
-                player.next = createPiece(PIECES[PIECES.length * Math.random() | 0]);
-            }
-            player.matrix = player.next;
-            player.next = createPiece(PIECES[PIECES.length * Math.random() | 0]);
-            drawNext();
-
-            player.pos.y = 0;
-            player.pos.x = (arena[0].length / 2 | 0) - (player.matrix[0].length / 2 | 0);
-            
-            if (collide(arena, player)) {
-                gameOver();
-            }
-        }
-
-        function collide(arena, player) {
-            const m = player.matrix;
-            const o = player.pos;
-            for (let y = 0; y < m.length; ++y) {
-                for (let x = 0; x < m[y].length; ++x) {
-                    if (m[y][x] !== 0 &&
-                       (arena[y + o.y] &&
-                        arena[y + o.y][x + o.x]) !== 0) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        function arenaSweep() {
-            let rowCount = 0;
-            let rowsToRemove = [];
-
-            for (let y = arena.length -1; y > 0; --y) {
-                let isRowFull = true;
-                for (let x = 0; x < arena[y].length; ++x) {
-                    if (arena[y][x] === 0) {
-                        isRowFull = false;
-                        break;
-                    }
-                }
-                if (isRowFull) {
-                    rowsToRemove.push(y);
-                    rowCount++;
-                }
-            }
-
-            if (rowCount > 0) {
-                rowsToRemove.forEach(y => {
-                    for (let x = 0; x < arena[y].length; x++) {
-                        createParticles(x, y, arena[y][x]);
-                    }
-                });
-
-                let newArena = arena.filter((row, index) => !rowsToRemove.includes(index));
-                while (newArena.length < arena.length) {
-                    newArena.unshift(new Array(arena[0].length).fill(0));
-                }
-                for(let y=0; y<arena.length; y++) {
-                    arena[y] = newArena[y];
-                }
-
-                const lineScores = [0, 40, 100, 300, 1200];
-                const baseScore = lineScores[rowCount] || 0;
-                player.score += baseScore * (player.level + 1);
-                player.lines += rowCount;
-                player.level = Math.floor(player.lines / 10) + 1;
-                dropInterval = Math.max(100, 1000 - ((player.level - 1) * 80));
-
-                if (rowCount === 4) {
-                    triggerShake(true);
-                    triggerFlash();
-                    createFloatText("TETRIS!!", "#00f3ff");
-                } else if (rowCount === 3) {
-                    triggerShake(false);
-                    createFloatText("TRIPLE", "#ff00ff");
-                } else if (rowCount === 2) {
-                    createFloatText("DOUBLE", "#0aff00");
-                } else {
-                    createFloatText("SINGLE", "#fcee0a");
-                }
-            }
-        }
-
-        function updateScore() {
-            scoreElement.innerText = player.score;
-            levelElement.innerText = player.level;
-        }
-
-        function gameOver() {
-            isGameOver = true;
-            isPaused = true;
-            isGameStarted = false;
-            cancelAnimationFrame(animationId);
-            
-            const rankingData = getRankingWithCurrent(player.score);
-            showRanking(rankingData);
-
-            levelSelector.style.display = 'flex'; // Show level selector
-            overlay.style.display = 'flex';
-            overlayTitle.innerText = "SYSTEM FAILURE";
-            overlayTitle.style.color = "var(--neon-pink)";
-            startBtn.innerText = "REBOOT SYSTEM";
-            finalScoreElement.style.display = 'block';
-            finalScoreElement.innerText = `FINAL SCORE: ${player.score}`;
-            pauseBtn.innerText = "PAUSE";
-        }
-
-        function update(time = 0) {
-            if (isPaused) return;
-
-            const deltaTime = time - lastTime;
-            lastTime = time;
-
-            dropCounter += deltaTime;
-            if (dropCounter > dropInterval) {
-                playerDrop();
-            }
-
-            for (let i = particles.length - 1; i >= 0; i--) {
-                let p = particles[i];
-                p.x += p.vx; p.y += p.vy;
-                p.life -= p.decay; p.vy += 0.02;
-                if (p.life <= 0) particles.splice(i, 1);
-            }
-
-            for (let i = floatTexts.length - 1; i >= 0; i--) {
-                let ft = floatTexts[i];
-                ft.y += ft.vy; ft.life -= 0.02;
-                if (ft.life <= 0) floatTexts.splice(i, 1);
-            }
-
-            draw();
-            animationId = requestAnimationFrame(update);
-        }
-
-        function togglePause() {
-            if (!isGameStarted || isGameOver) return;
-            isPaused = !isPaused;
-
-            if (isPaused) {
-                cancelAnimationFrame(animationId);
-                overlay.style.display = 'flex';
-                rankingList.style.display = 'none'; 
-                levelSelector.style.display = 'none'; // Hide level selector on pause
-                overlayTitle.innerText = "SYSTEM PAUSED";
-                overlayTitle.style.color = "var(--neon-yellow)";
-                startBtn.innerText = "RESUME";
-                finalScoreElement.style.display = 'none';
-                pauseBtn.innerText = "RESUME";
-            } else {
-                overlay.style.display = 'none';
-                pauseBtn.innerText = "PAUSE";
-                lastTime = performance.now();
-                update();
-            }
-        }
-
-        function resetGame() {
-            // Confirm dialog removed as per request
-            startGame();
-        }
-
-        startBtn.addEventListener('click', () => {
-            if (isPaused && isGameStarted && !isGameOver) {
-                togglePause();
-            } else {
-                startGame();
-            }
-        });
-
-        function startGame() {
-            if (animationId) cancelAnimationFrame(animationId); // Ensure no duplicate loops
-
-            arena.forEach(row => row.fill(0));
-            player.score = 0; 
-            player.level = startLevel; // Use selected level
-            player.lines = 0; 
-            player.next = null;
-            
-            // Adjust drop speed for starting level
-            dropInterval = Math.max(100, 1000 - ((player.level - 1) * 80));
-            
-            updateScore();
-            
-            particles = []; floatTexts = [];
-            gameContainer.classList.remove('shake-effect', 'shake-hard');
-            
-            isGameOver = false; isPaused = false; isGameStarted = true;
-            overlay.style.display = 'none'; finalScoreElement.style.display = 'none';
-            rankingList.style.display = 'none';
-            levelSelector.style.display = 'none'; // Hide selector
-            pauseBtn.innerText = "PAUSE";
-            
-            playerReset();
-            resizeGame();
-            update();
-        }
-
-        document.addEventListener('keydown', event => {
-            if (event.keyCode === 80 || event.keyCode === 27) {
-                togglePause(); return;
-            }
-            if (isPaused || !isGameStarted) return;
-
-            if (event.keyCode === 37) playerMove(-1);
-            else if (event.keyCode === 39) playerMove(1);
-            else if (event.keyCode === 40) playerDrop();
-            else if (event.keyCode === 81) playerRotate(-1);
-            else if (event.keyCode === 87 || event.keyCode === 38) playerRotate(1);
-            else if (event.keyCode === 32) hardDrop();
-        });
-        
-        function setupMobileControls() {
-            let lastTouchTime = 0;
-
-            const bind = (selector, action) => {
-                const btn = document.querySelector(selector);
-                if (!btn) return;
-                
-                const handleTouch = (e) => {
-                    if (e.cancelable) e.preventDefault();
-                    lastTouchTime = Date.now();
-                    action();
-                };
-
-                const handleMouse = (e) => {
-                    if (Date.now() - lastTouchTime < 500) return;
-                    action();
-                };
-
-                btn.addEventListener('touchstart', handleTouch, { passive: false });
-                btn.addEventListener('mousedown', handleMouse);
-            };
-
-            bind('.btn-up', () => playerRotate(1));
-            bind('.btn-left', () => playerMove(-1));
-            bind('.btn-right', () => playerMove(1));
-            bind('.btn-down', () => playerDrop());
-            bind('.btn-drop', () => hardDrop());
-        }
-        
-        setupMobileControls();
-    </script>
+    loadWorkouts();
+    setToday();
+    render();
+  </script>
 </body>
 </html>
-
-
