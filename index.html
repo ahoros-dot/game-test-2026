@@ -3,150 +3,172 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Muscle Planner</title>
+  <title>Muscle Planner v2</title>
   <style>
     :root {
-      --bg: #0f172a;
-      --panel: #111827;
-      --card: #1f2937;
-      --text: #e5e7eb;
+      --bg: #0b1020;
+      --panel: #111a30;
+      --card: #17233f;
+      --line: #30456d;
+      --text: #e2e8f0;
       --muted: #94a3b8;
-      --accent: #22d3ee;
-      --accent2: #34d399;
-      --danger: #f43f5e;
+      --accent: #38bdf8;
+      --ok: #34d399;
+      --warn: #fb7185;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", sans-serif;
+      font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN",sans-serif;
       color: var(--text);
-      background: radial-gradient(circle at top, #1e293b 0%, var(--bg) 55%);
+      background: radial-gradient(circle at top, #1e293b 0%, var(--bg) 58%);
       min-height: 100vh;
       padding: 16px;
     }
-    .container { max-width: 1100px; margin: 0 auto; display: grid; gap: 14px; }
+    .app { max-width: 1120px; margin: 0 auto; display: grid; gap: 14px; }
     .panel {
-      background: rgba(17, 24, 39, 0.88);
-      border: 1px solid #334155;
-      border-radius: 12px;
+      background: rgba(17, 26, 48, .88);
+      border: 1px solid var(--line);
+      border-radius: 14px;
       padding: 14px;
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(6px);
     }
-    h1 { margin: 0 0 6px; font-size: 1.3rem; }
-    .sub { color: var(--muted); margin: 0; }
-    .controls {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-      gap: 10px;
-    }
-    label { font-size: .85rem; color: #cbd5e1; display: block; margin-bottom: 4px; }
+    h1,h2,h3 { margin: 0; }
+    .muted { color: var(--muted); }
+
+    .grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+    label { display: block; margin-bottom: 6px; font-size: .84rem; color: #cbd5e1; }
     select, button {
       width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #475569;
-      background: #0b1220;
+      border-radius: 10px;
+      border: 1px solid #46608f;
+      background: #0d1528;
       color: var(--text);
+      padding: 10px;
+      font-size: .94rem;
     }
     button {
-      cursor: pointer;
       font-weight: 700;
-      border-color: #0891b2;
-      background: linear-gradient(180deg, #155e75, #0e7490);
+      cursor: pointer;
+      background: linear-gradient(180deg, #0ea5e9, #0369a1);
     }
-    button:hover { filter: brightness(1.1); }
+    button:hover { filter: brightness(1.08); }
 
-    .layout { display: grid; gap: 14px; grid-template-columns: 1fr 1.2fr; }
-    @media (max-width: 880px) { .layout { grid-template-columns: 1fr; } }
+    .layout { display: grid; gap: 14px; grid-template-columns: 1fr 1.25fr; }
+    @media (max-width: 920px) { .layout { grid-template-columns: 1fr; } }
 
     .bodymap {
-      position: relative;
+      margin-top: 8px;
       height: 420px;
-      border: 1px dashed #475569;
+      border: 1px dashed #4b6088;
       border-radius: 12px;
-      background: linear-gradient(180deg, rgba(15,23,42,.45), rgba(2,6,23,.8));
+      background: linear-gradient(180deg, rgba(15,23,42,.35), rgba(15,23,42,.8));
+      position: relative;
       overflow: hidden;
     }
-    .silhouette {
+    .body-icon {
       position: absolute;
       inset: 0;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 12rem;
-      opacity: 0.14;
+      opacity: .14;
       pointer-events: none;
     }
     .muscle {
       position: absolute;
-      border: 1px solid #64748b;
+      border: 1px solid #6b82ad;
+      background: rgba(53, 76, 120, .45);
+      color: #eaf2ff;
       border-radius: 999px;
-      background: rgba(51,65,85,.45);
-      color: #e2e8f0;
-      font-size: .8rem;
-      text-align: center;
+      min-width: 74px;
       padding: 8px 10px;
       cursor: pointer;
-      transition: .18s;
-      min-width: 68px;
+      transition: .16s;
+      font-size: .84rem;
     }
     .muscle:hover { border-color: var(--accent); }
     .muscle.active {
-      background: rgba(34, 211, 238, .25);
       border-color: var(--accent);
-      box-shadow: 0 0 0 1px var(--accent) inset, 0 0 14px rgba(34, 211, 238, .2);
+      background: rgba(56,189,248,.25);
+      box-shadow: 0 0 0 1px var(--accent) inset, 0 0 14px rgba(56,189,248,.25);
     }
-
-    .chest { top: 88px; left: 50%; transform: translateX(-50%); }
     .shoulders { top: 56px; left: 50%; transform: translateX(-50%); }
-    .arms { top: 156px; left: 50%; transform: translateX(-50%); }
-    .abs { top: 148px; left: 50%; transform: translateX(-50%); }
-    .back { top: 244px; left: 50%; transform: translateX(-50%); }
+    .chest { top: 92px; left: 50%; transform: translateX(-50%); }
+    .arms { top: 150px; left: 50%; transform: translateX(-50%); }
+    .abs { top: 200px; left: 50%; transform: translateX(-50%); }
+    .back { top: 252px; left: 50%; transform: translateX(-50%); }
     .legs { top: 314px; left: 50%; transform: translateX(-50%); }
 
-    .cards { display: grid; gap: 10px; }
-    .plan-card {
-      background: var(--card);
-      border: 1px solid #334155;
-      border-left: 4px solid var(--accent2);
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .chip {
+      border: 1px solid #48638f;
+      background: rgba(15,23,42,.8);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: .78rem;
+      color: #cfe2ff;
+    }
+
+    .cards { display: grid; gap: 10px; margin-top: 8px; }
+    .card {
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--ok);
       border-radius: 10px;
+      background: var(--card);
       padding: 10px;
     }
-    .plan-top { display: flex; justify-content: space-between; gap: 8px; }
-    .name { font-weight: 700; }
-    .meta { color: var(--muted); font-size: .86rem; margin-top: 4px; }
-    .tips { margin: 8px 0 0; padding-left: 18px; color: #cbd5e1; }
-    .video {
-      display: inline-block;
-      margin-top: 8px;
-      color: var(--accent);
-      font-size: .86rem;
-      text-decoration: none;
-    }
+    .row { display: flex; justify-content: space-between; gap: 10px; align-items: start; }
+    .title { font-weight: 700; }
+    .meta { color: var(--muted); font-size: .85rem; margin-top: 4px; }
+    ul { margin: 8px 0 0; padding-left: 18px; }
+    .video { color: var(--accent); text-decoration: none; font-size: .85rem; }
     .empty {
-      border: 1px dashed #475569;
+      text-align: center;
+      padding: 16px;
+      border: 1px dashed #54709d;
       border-radius: 10px;
       color: var(--muted);
-      padding: 14px;
-      text-align: center;
+      background: rgba(15,23,42,.35);
     }
-    .danger { color: var(--danger); }
+    .danger { color: var(--warn); }
+    .access {
+      border: 1px solid #275078;
+      border-radius: 10px;
+      padding: 10px;
+      background: rgba(2, 132, 199, .1);
+      margin-top: 8px;
+      font-size: .86rem;
+    }
+    code { color: #7dd3fc; }
   </style>
 </head>
 <body>
-  <div class="container">
+  <main class="app">
     <section class="panel">
-      <h1>筋トレ部位プランナー（iOS / Android / Web向けMVP）</h1>
-      <p class="sub">部位を選択すると、レベルと器具条件に合わせて本日のプランを自動生成します。</p>
+      <h1>筋トレ部位プランナー</h1>
+      <p class="muted" style="margin:6px 0 0;">初心者・中級者・上級者向け。鍛えたい部位を選んで、器具/時間/目的に合わせたメニューを自動生成します。</p>
+      <div class="access">
+        ローカルアクセス: <code>python -m http.server 8000</code> を実行し、<code>http://localhost:8000/</code> を開いてください。
+      </div>
     </section>
 
-    <section class="panel controls">
+    <section class="panel grid">
       <div>
         <label for="level">レベル</label>
         <select id="level">
           <option value="beginner">初心者</option>
           <option value="intermediate">中級者</option>
           <option value="advanced">上級者</option>
+        </select>
+      </div>
+      <div>
+        <label for="goal">目的</label>
+        <select id="goal">
+          <option value="hypertrophy">筋肥大</option>
+          <option value="tone">引き締め</option>
+          <option value="strength">筋力向上</option>
         </select>
       </div>
       <div>
@@ -166,15 +188,16 @@
         </select>
       </div>
       <div style="align-self:end">
-        <button id="generateBtn">プラン生成</button>
+        <button id="generateBtn">プランを生成</button>
       </div>
     </section>
 
     <section class="layout">
-      <div class="panel">
-        <h2 style="margin-top:0">部位を選択（最大2つ）</h2>
+      <section class="panel">
+        <h2>部位選択（最大2つ）</h2>
+        <p class="muted" style="margin:6px 0 0;">胸 / 背中 / 脚 / 肩 / 腕 / 腹</p>
         <div class="bodymap" id="bodyMap">
-          <div class="silhouette">🧍</div>
+          <div class="body-icon">🧍</div>
           <button class="muscle shoulders" data-muscle="shoulders">肩</button>
           <button class="muscle chest" data-muscle="chest">胸</button>
           <button class="muscle arms" data-muscle="arms">腕</button>
@@ -182,151 +205,155 @@
           <button class="muscle back" data-muscle="back">背中</button>
           <button class="muscle legs" data-muscle="legs">脚</button>
         </div>
-        <p class="sub" id="selectionText" style="margin-top:8px">未選択です。</p>
-      </div>
+        <div class="chips" id="selectionChips"><span class="chip">未選択</span></div>
+      </section>
 
-      <div class="panel">
-        <h2 style="margin-top:0">本日のメニュー</h2>
+      <section class="panel">
+        <h2>本日のメニュー</h2>
         <div id="plan" class="cards">
-          <div class="empty">左で部位を選択し、「プラン生成」を押してください。</div>
+          <div class="empty">部位を選んで「プランを生成」を押してください。</div>
         </div>
-      </div>
+      </section>
     </section>
-  </div>
+  </main>
 
   <script>
+    const NAMES = { chest: '胸', back: '背中', legs: '脚', shoulders: '肩', arms: '腕', abs: '腹' };
     const selected = new Set();
     const bodyMap = document.getElementById('bodyMap');
-    const selectionText = document.getElementById('selectionText');
-    const planRoot = document.getElementById('plan');
+    const selectionChips = document.getElementById('selectionChips');
+    const planEl = document.getElementById('plan');
 
-    const recipes = {
+    const EXERCISES = {
       chest: [
-        { name: 'プッシュアップ', equipment: ['bodyweight'], videoUrl: 'https://www.youtube.com/results?search_query=push+up+form', tips: ['肩をすくめない', '胸で押す意識'] },
-        { name: 'ダンベルベンチプレス', equipment: ['dumbbell', 'gym'], videoUrl: 'https://www.youtube.com/results?search_query=dumbbell+bench+press+form', tips: ['肩甲骨を寄せる', '足裏で床を押す'] },
-        { name: 'チェストプレス', equipment: ['gym'], videoUrl: 'https://www.youtube.com/results?search_query=chest+press+machine+form', tips: ['バーを胸のラインへ', '反動を使わない'] }
+        { id:'pushup', name:'プッシュアップ', equipment:['bodyweight'], video:'https://www.youtube.com/results?search_query=push+up+form', tips:['肩をすくめない','胸で押す意識'] },
+        { id:'dbbench', name:'ダンベルベンチプレス', equipment:['dumbbell','gym'], video:'https://www.youtube.com/results?search_query=dumbbell+bench+press+form', tips:['肩甲骨を寄せる','足裏で床を押す'] },
+        { id:'chestpress', name:'チェストプレス', equipment:['gym'], video:'https://www.youtube.com/results?search_query=chest+press+machine+form', tips:['反動を使わない','バーを胸のラインへ'] }
       ],
       back: [
-        { name: 'バックエクステンション', equipment: ['bodyweight'], videoUrl: 'https://www.youtube.com/results?search_query=back+extension+form', tips: ['腰を反りすぎない', '可動域を意識'] },
-        { name: 'ワンハンドロウ', equipment: ['dumbbell', 'gym'], videoUrl: 'https://www.youtube.com/results?search_query=one+arm+row+form', tips: ['肘を腰に引く', '体幹を固定'] },
-        { name: 'ラットプルダウン', equipment: ['gym'], videoUrl: 'https://www.youtube.com/results?search_query=lat+pulldown+form', tips: ['胸を張る', '首で引かない'] }
+        { id:'ext', name:'バックエクステンション', equipment:['bodyweight'], video:'https://www.youtube.com/results?search_query=back+extension+form', tips:['腰を反りすぎない','可動域を意識'] },
+        { id:'row', name:'ワンハンドロウ', equipment:['dumbbell','gym'], video:'https://www.youtube.com/results?search_query=one+arm+row+form', tips:['肘を腰へ引く','体幹を固定'] },
+        { id:'lat', name:'ラットプルダウン', equipment:['gym'], video:'https://www.youtube.com/results?search_query=lat+pulldown+form', tips:['胸を張る','首で引かない'] }
       ],
       legs: [
-        { name: 'スクワット', equipment: ['bodyweight', 'dumbbell', 'gym'], videoUrl: 'https://www.youtube.com/results?search_query=squat+form', tips: ['膝とつま先の向きを揃える', '背中を丸めない'] },
-        { name: 'ブルガリアンスクワット', equipment: ['bodyweight', 'dumbbell'], videoUrl: 'https://www.youtube.com/results?search_query=bulgarian+squat+form', tips: ['前足重心', '膝が内に入らない'] },
-        { name: 'レッグプレス', equipment: ['gym'], videoUrl: 'https://www.youtube.com/results?search_query=leg+press+form', tips: ['腰を浮かせない', '可動域をコントロール'] }
+        { id:'squat', name:'スクワット', equipment:['bodyweight','dumbbell','gym'], video:'https://www.youtube.com/results?search_query=squat+form', tips:['膝とつま先を揃える','背中を丸めない'] },
+        { id:'bulgarian', name:'ブルガリアンスクワット', equipment:['bodyweight','dumbbell'], video:'https://www.youtube.com/results?search_query=bulgarian+squat+form', tips:['前足重心','膝を内側に入れない'] },
+        { id:'legpress', name:'レッグプレス', equipment:['gym'], video:'https://www.youtube.com/results?search_query=leg+press+form', tips:['腰を浮かせない','可動域をコントロール'] }
       ],
       shoulders: [
-        { name: 'パイクプッシュアップ', equipment: ['bodyweight'], videoUrl: 'https://www.youtube.com/results?search_query=pike+push+up+form', tips: ['頭を手の間に下ろす', '首に力を入れない'] },
-        { name: 'ショルダープレス', equipment: ['dumbbell', 'gym'], videoUrl: 'https://www.youtube.com/results?search_query=shoulder+press+form', tips: ['腰を反りすぎない', '肘は真下に保つ'] },
-        { name: 'サイドレイズ', equipment: ['dumbbell', 'gym'], videoUrl: 'https://www.youtube.com/results?search_query=side+raise+form', tips: ['反動を使わない', '肩の高さまで上げる'] }
+        { id:'pike', name:'パイクプッシュアップ', equipment:['bodyweight'], video:'https://www.youtube.com/results?search_query=pike+push+up+form', tips:['頭を手の間へ','首に力を入れない'] },
+        { id:'press', name:'ショルダープレス', equipment:['dumbbell','gym'], video:'https://www.youtube.com/results?search_query=shoulder+press+form', tips:['腰を反りすぎない','肘は真下へ'] },
+        { id:'lateral', name:'サイドレイズ', equipment:['dumbbell','gym'], video:'https://www.youtube.com/results?search_query=side+raise+form', tips:['反動を使わない','肩の高さまで'] }
       ],
       arms: [
-        { name: 'ナロープッシュアップ', equipment: ['bodyweight'], videoUrl: 'https://www.youtube.com/results?search_query=close+grip+push+up+form', tips: ['肘を締める', '体を一直線に'] },
-        { name: 'ダンベルカール', equipment: ['dumbbell', 'gym'], videoUrl: 'https://www.youtube.com/results?search_query=dumbbell+curl+form', tips: ['肘を固定', '反動禁止'] },
-        { name: 'トライセプスプレスダウン', equipment: ['gym'], videoUrl: 'https://www.youtube.com/results?search_query=triceps+pushdown+form', tips: ['肩を下げる', '肘の位置を固定'] }
+        { id:'narrowpush', name:'ナロープッシュアップ', equipment:['bodyweight'], video:'https://www.youtube.com/results?search_query=close+grip+push+up+form', tips:['肘を締める','体を一直線に'] },
+        { id:'curl', name:'ダンベルカール', equipment:['dumbbell','gym'], video:'https://www.youtube.com/results?search_query=dumbbell+curl+form', tips:['肘を固定','反動禁止'] },
+        { id:'pushdown', name:'トライセプスプレスダウン', equipment:['gym'], video:'https://www.youtube.com/results?search_query=triceps+pushdown+form', tips:['肩を下げる','肘を固定'] }
       ],
       abs: [
-        { name: 'プランク', equipment: ['bodyweight'], videoUrl: 'https://www.youtube.com/results?search_query=plank+form', tips: ['腰を落とさない', '腹圧をかける'] },
-        { name: 'デッドバグ', equipment: ['bodyweight'], videoUrl: 'https://www.youtube.com/results?search_query=dead+bug+exercise+form', tips: ['腰を床につける', '呼吸を止めない'] },
-        { name: 'ケーブルクランチ', equipment: ['gym'], videoUrl: 'https://www.youtube.com/results?search_query=cable+crunch+form', tips: ['背中を丸める', '股関節で折らない'] }
+        { id:'plank', name:'プランク', equipment:['bodyweight'], video:'https://www.youtube.com/results?search_query=plank+form', tips:['腰を落とさない','腹圧をキープ'] },
+        { id:'deadbug', name:'デッドバグ', equipment:['bodyweight'], video:'https://www.youtube.com/results?search_query=dead+bug+exercise+form', tips:['腰を床へ','呼吸を止めない'] },
+        { id:'cablecrunch', name:'ケーブルクランチ', equipment:['gym'], video:'https://www.youtube.com/results?search_query=cable+crunch+form', tips:['背中を丸める','股関節で折らない'] }
       ]
     };
 
-    const names = { chest:'胸', back:'背中', legs:'脚', shoulders:'肩', arms:'腕', abs:'腹' };
-
-    function prescription(level) {
-      if (level === 'beginner') return { sets: '2〜3', reps: '10〜12', rest: '60〜90秒' };
-      if (level === 'intermediate') return { sets: '3〜4', reps: '8〜12', rest: '60〜120秒' };
-      return { sets: '4〜5', reps: '6〜10', rest: '90〜150秒' };
+    function prescription(level, goal) {
+      const key = `${level}:${goal}`;
+      const table = {
+        'beginner:hypertrophy': { sets:'2-3', reps:'10-12', rest:'60-90秒' },
+        'beginner:tone': { sets:'2-3', reps:'12-15', rest:'45-60秒' },
+        'beginner:strength': { sets:'3', reps:'6-8', rest:'90秒' },
+        'intermediate:hypertrophy': { sets:'3-4', reps:'8-12', rest:'60-90秒' },
+        'intermediate:tone': { sets:'3-4', reps:'12-15', rest:'45-75秒' },
+        'intermediate:strength': { sets:'4', reps:'4-8', rest:'90-120秒' },
+        'advanced:hypertrophy': { sets:'4-5', reps:'6-12', rest:'60-90秒' },
+        'advanced:tone': { sets:'4', reps:'12-20', rest:'45-75秒' },
+        'advanced:strength': { sets:'5', reps:'3-6', rest:'120-180秒' }
+      };
+      return table[key];
     }
 
-    function sampleByEquipment(list, equipment) {
-      return list.filter(x => x.equipment.includes(equipment));
+    function byEquipment(items, eq) { return items.filter(x => x.equipment.includes(eq)); }
+
+    function uniqueById(list) {
+      const map = new Map();
+      list.forEach(item => { if (!map.has(item.id)) map.set(item.id, item); });
+      return [...map.values()];
     }
 
-    function updateSelectionText() {
+    function renderChips() {
       if (!selected.size) {
-        selectionText.textContent = '未選択です。';
+        selectionChips.innerHTML = '<span class="chip">未選択</span>';
         return;
       }
-      const label = [...selected].map(k => names[k]).join(' + ');
-      selectionText.textContent = `選択中: ${label}`;
+      selectionChips.innerHTML = [...selected].map(m => `<span class="chip">${NAMES[m]}</span>`).join('');
     }
 
-    bodyMap.addEventListener('click', (e) => {
+    bodyMap.addEventListener('click', e => {
       const btn = e.target.closest('.muscle');
       if (!btn) return;
-      const muscle = btn.dataset.muscle;
-
-      if (selected.has(muscle)) {
-        selected.delete(muscle);
+      const m = btn.dataset.muscle;
+      if (selected.has(m)) {
+        selected.delete(m);
         btn.classList.remove('active');
       } else {
         if (selected.size >= 2) {
           alert('部位は最大2つまで選択できます。');
           return;
         }
-        selected.add(muscle);
+        selected.add(m);
         btn.classList.add('active');
       }
-      updateSelectionText();
+      renderChips();
     });
 
-    document.getElementById('generateBtn').addEventListener('click', () => {
+    function createPlan() {
       const level = document.getElementById('level').value;
-      const equipment = document.getElementById('equipment').value;
+      const goal = document.getElementById('goal').value;
+      const eq = document.getElementById('equipment').value;
       const duration = Number(document.getElementById('duration').value);
 
       if (!selected.size) {
-        planRoot.innerHTML = '<div class="empty danger">部位を1つ以上選択してください。</div>';
+        planEl.innerHTML = '<div class="empty danger">部位を1つ以上選択してください。</div>';
         return;
       }
 
-      const targetCount = duration === 15 ? 3 : duration === 30 ? 4 : 5;
-      const rule = prescription(level);
-      const chosen = [...selected];
-      const primary = chosen[0];
-      const secondary = chosen[1] || chosen[0];
+      const count = duration === 15 ? 3 : duration === 30 ? 4 : 5;
+      const [a, b] = [...selected];
+      const mainA = byEquipment(EXERCISES[a], eq);
+      const mainB = byEquipment(EXERCISES[b || a], eq);
+      const merged = uniqueById([...mainA, ...mainB]).slice(0, count);
 
-      const primaryPool = sampleByEquipment(recipes[primary], equipment);
-      const secondaryPool = sampleByEquipment(recipes[secondary], equipment);
-
-      const combined = [...primaryPool, ...secondaryPool].slice(0, targetCount);
-
-      if (!combined.length) {
-        planRoot.innerHTML = '<div class="empty danger">この器具条件に合う種目がありません。器具を変更してください。</div>';
+      if (!merged.length) {
+        planEl.innerHTML = '<div class="empty danger">この条件に合う種目がありません。器具を変更してください。</div>';
         return;
       }
 
-      const warmup = {
-        name: 'ウォームアップ（関節可動 + 軽い有酸素 3分）',
-        tips: ['肩・股関節を大きく動かす', '息が上がりすぎない強度で開始'],
-        videoUrl: 'https://www.youtube.com/results?search_query=dynamic+warm+up+routine'
-      };
+      const rule = prescription(level, goal);
+      const warmup = { name:'ウォームアップ 3分', tips:['関節を大きく動かす','体温を上げる'], video:'https://www.youtube.com/results?search_query=dynamic+warm+up+routine' };
+      const cooldown = { name:'クールダウン 2〜4分', tips:['鍛えた部位をストレッチ','呼吸を整える'], video:'https://www.youtube.com/results?search_query=cool+down+stretch+routine' };
+      const blocks = [warmup, ...merged, cooldown];
 
-      const cooldown = {
-        name: 'クールダウン（ストレッチ 2〜4分）',
-        tips: ['鍛えた部位を中心に30秒ずつ', '呼吸を整えて終了'],
-        videoUrl: 'https://www.youtube.com/results?search_query=cool+down+stretch+routine'
-      };
-
-      const render = [warmup, ...combined, cooldown];
-
-      planRoot.innerHTML = render.map((item, idx) => `
-        <article class="plan-card">
-          <div class="plan-top">
-            <div>
-              <div class="name">${idx + 1}. ${item.name}</div>
-              <div class="meta">セット: ${idx === 0 || idx === render.length - 1 ? '-' : rule.sets} / 回数: ${idx === 0 || idx === render.length - 1 ? '-' : rule.reps} / 休憩: ${idx === 0 || idx === render.length - 1 ? '-' : rule.rest}</div>
+      planEl.innerHTML = blocks.map((x, i) => {
+        const accessory = i === 0 || i === blocks.length - 1;
+        return `
+          <article class="card">
+            <div class="row">
+              <div>
+                <div class="title">${i + 1}. ${x.name}</div>
+                <div class="meta">セット: ${accessory ? '-' : rule.sets} / 回数: ${accessory ? '-' : rule.reps} / 休憩: ${accessory ? '-' : rule.rest}</div>
+              </div>
+              <div class="meta">${accessory ? (i === 0 ? '準備' : '回復') : 'メイン'}</div>
             </div>
-            <div class="meta">${idx === 0 ? '準備' : idx === render.length - 1 ? '回復' : 'メイン'}</div>
-          </div>
-          <ul class="tips">${item.tips.map(t => `<li>${t}</li>`).join('')}</ul>
-          <a class="video" href="${item.videoUrl}" target="_blank" rel="noopener noreferrer">▶ 外部動画でフォーム確認</a>
-        </article>
-      `).join('');
-    });
+            <ul>${x.tips.map(t => `<li>${t}</li>`).join('')}</ul>
+            <a class="video" href="${x.video}" target="_blank" rel="noopener noreferrer">▶ 外部動画でフォーム確認</a>
+          </article>
+        `;
+      }).join('');
+    }
+
+    document.getElementById('generateBtn').addEventListener('click', createPlan);
+    renderChips();
   </script>
 </body>
 </html>
