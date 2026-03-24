@@ -1,1125 +1,332 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CYBER BLOCK PROTOCOL</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #050505;
-            --grid-color: #1a1a2e;
-            --neon-blue: #00f3ff;
-            --neon-pink: #ff00ff;
-            --neon-green: #0aff00;
-            --neon-yellow: #fcee0a;
-            --panel-bg: rgba(10, 20, 30, 0.95);
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Muscle Planner</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --card: #1f2937;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #22d3ee;
+      --accent2: #34d399;
+      --danger: #f43f5e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top, #1e293b 0%, var(--bg) 55%);
+      min-height: 100vh;
+      padding: 16px;
+    }
+    .container { max-width: 1100px; margin: 0 auto; display: grid; gap: 14px; }
+    .panel {
+      background: rgba(17, 24, 39, 0.88);
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 14px;
+      backdrop-filter: blur(8px);
+    }
+    h1 { margin: 0 0 6px; font-size: 1.3rem; }
+    .sub { color: var(--muted); margin: 0; }
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 10px;
+    }
+    label { font-size: .85rem; color: #cbd5e1; display: block; margin-bottom: 4px; }
+    select, button {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #475569;
+      background: #0b1220;
+      color: var(--text);
+    }
+    button {
+      cursor: pointer;
+      font-weight: 700;
+      border-color: #0891b2;
+      background: linear-gradient(180deg, #155e75, #0e7490);
+    }
+    button:hover { filter: brightness(1.1); }
 
-        * {
-            box-sizing: border-box;
-            /* 重要: ダブルタップズームなどを無効化 */
-            touch-action: manipulation;
-        }
+    .layout { display: grid; gap: 14px; grid-template-columns: 1fr 1.2fr; }
+    @media (max-width: 880px) { .layout { grid-template-columns: 1fr; } }
 
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
-            background-image: 
-                linear-gradient(var(--grid-color) 1px, transparent 1px),
-                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
-            background-size: 30px 30px;
-            color: #fff;
-            font-family: 'Orbitron', sans-serif;
-            height: 100vh;
-            width: 100vw;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            user-select: none;
-            -webkit-user-select: none;
-        }
+    .bodymap {
+      position: relative;
+      height: 420px;
+      border: 1px dashed #475569;
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(15,23,42,.45), rgba(2,6,23,.8));
+      overflow: hidden;
+    }
+    .silhouette {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12rem;
+      opacity: 0.14;
+      pointer-events: none;
+    }
+    .muscle {
+      position: absolute;
+      border: 1px solid #64748b;
+      border-radius: 999px;
+      background: rgba(51,65,85,.45);
+      color: #e2e8f0;
+      font-size: .8rem;
+      text-align: center;
+      padding: 8px 10px;
+      cursor: pointer;
+      transition: .18s;
+      min-width: 68px;
+    }
+    .muscle:hover { border-color: var(--accent); }
+    .muscle.active {
+      background: rgba(34, 211, 238, .25);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent) inset, 0 0 14px rgba(34, 211, 238, .2);
+    }
 
-        /* Scanline effect */
-        body::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: linear-gradient(
-                to bottom,
-                rgba(255,255,255,0),
-                rgba(255,255,255,0) 50%,
-                rgba(0,0,0,0.1) 50%,
-                rgba(0,0,0,0.1)
-            );
-            background-size: 100% 4px;
-            pointer-events: none;
-            z-index: 10;
-        }
+    .chest { top: 88px; left: 50%; transform: translateX(-50%); }
+    .shoulders { top: 56px; left: 50%; transform: translateX(-50%); }
+    .arms { top: 156px; left: 50%; transform: translateX(-50%); }
+    .abs { top: 148px; left: 50%; transform: translateX(-50%); }
+    .back { top: 244px; left: 50%; transform: translateX(-50%); }
+    .legs { top: 314px; left: 50%; transform: translateX(-50%); }
 
-        #game-layout {
-            display: flex;
-            flex-direction: row;
-            align-items: flex-start;
-            justify-content: center;
-            gap: 10px;
-            padding: 5px;
-            width: 100%;
-            height: 100%;
-            position: relative;
-            z-index: 20;
-        }
-
-        #game-container {
-            position: relative;
-            border: 2px solid var(--neon-blue);
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2), inset 0 0 15px rgba(0, 243, 255, 0.1);
-            background: var(--panel-bg);
-            /* Dimensions are handled by JS resize */
-        }
-
-        canvas {
-            background-color: rgba(0, 0, 0, 0.95);
-            display: block;
-            max-width: 100%;
-            height: auto;
-        }
-
-        #ui-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            width: 140px;
-        }
-
-        .stat-box {
-            border-left: 4px solid var(--neon-pink);
-            padding: 5px 8px;
-            background: rgba(0, 0, 0, 0.6);
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .stat-label {
-            font-size: 0.6rem;
-            color: var(--neon-pink);
-            text-shadow: 0 0 5px var(--neon-pink);
-            text-transform: uppercase;
-            line-height: 1;
-        }
-
-        .stat-value {
-            font-size: 1.1rem;
-            color: #fff;
-            text-shadow: 0 0 5px #fff;
-            line-height: 1.2;
-        }
-
-        #next-piece-canvas {
-            width: 100%;
-            aspect-ratio: 1;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid #333;
-        }
-
-        /* Overlay Styles */
-        #overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 100; /* High z-index */
-            backdrop-filter: blur(4px);
-        }
-
-        .glitch-text {
-            font-size: clamp(2rem, 5vw, 3rem);
-            font-weight: 900;
-            color: var(--neon-blue);
-            text-shadow: 2px 2px var(--neon-pink);
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            position: relative;
-            animation: glitch 1s infinite alternate;
-            text-align: center;
-        }
-
-        @keyframes glitch {
-            0% { transform: translate(0); text-shadow: 2px 2px var(--neon-pink); }
-            20% { transform: translate(-2px, 2px); text-shadow: -2px -2px var(--neon-green); }
-            40% { transform: translate(2px, -2px); text-shadow: 2px -2px var(--neon-pink); }
-            60% { transform: translate(0); text-shadow: 2px 2px var(--neon-blue); }
-            80% { transform: translate(-2px, 0); text-shadow: -2px 2px var(--neon-green); }
-            100% { transform: translate(2px, 0); text-shadow: 2px -2px var(--neon-pink); }
-        }
-
-        .cyber-btn {
-            background: transparent;
-            color: var(--neon-green);
-            border: 2px solid var(--neon-green);
-            padding: 10px 20px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            box-shadow: 0 0 10px var(--neon-green);
-            transition: all 0.2s;
-            position: relative;
-            overflow: hidden;
-            margin: 5px 0;
-        }
-
-        .cyber-btn:hover {
-            background: var(--neon-green);
-            color: #000;
-            box-shadow: 0 0 20px var(--neon-green);
-        }
-
-        .cyber-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
-            transition: 0.5s;
-        }
-        
-        .cyber-btn:hover::before {
-            left: 100%;
-        }
-
-        /* Reset Button Specifics */
-        .btn-reset {
-            color: var(--neon-pink);
-            border-color: var(--neon-pink);
-            box-shadow: 0 0 10px var(--neon-pink);
-        }
-        .btn-reset:hover {
-            background: var(--neon-pink);
-            box-shadow: 0 0 20px var(--neon-pink);
-        }
-
-        /* Level Selector Styles */
-        .level-select-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin: 10px 0 20px 0;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 10px 20px;
-            border: 1px solid var(--neon-blue);
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
-            border-radius: 5px;
-        }
-
-        .level-btn {
-            width: 40px;
-            height: 40px;
-            font-size: 1.5rem;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-            border-radius: 5px;
-        }
-
-        /* Ranking Styles */
-        #ranking-list {
-            margin: 10px 0;
-            width: 80%;
-            max-width: 300px;
-            background: rgba(0,0,0,0.5);
-            border: 1px solid var(--neon-blue);
-            padding: 10px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
-        .ranking-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid rgba(0, 243, 255, 0.3);
-            font-size: 1rem;
-        }
-        
-        .ranking-rank {
-            color: var(--neon-yellow);
-            font-weight: bold;
-            width: 40px;
-        }
-        
-        .ranking-score {
-            color: #fff;
-            text-shadow: 0 0 5px var(--neon-blue);
-        }
-
-        /* Highlight for current score */
-        .highlight-score {
-            color: var(--neon-pink);
-            text-shadow: 0 0 10px var(--neon-pink);
-            animation: pulse 1s infinite alternate;
-            font-weight: 900;
-            border-bottom: 1px solid var(--neon-pink);
-        }
-        
-        .highlight-score .ranking-score {
-            color: var(--neon-pink);
-            text-shadow: 0 0 10px var(--neon-pink);
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; transform: scale(1); }
-            100% { opacity: 0.8; transform: scale(1.02); }
-        }
-
-        /* Shake Effect Animation */
-        @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(3px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            70% { transform: translate(3px, 1px) rotate(-1deg); }
-            80% { transform: translate(-1px, -1px) rotate(1deg); }
-            90% { transform: translate(1px, 2px) rotate(0deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
-        }
-
-        .shake-effect {
-            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
-        }
-        
-        .shake-hard {
-            animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both;
-            animation-iteration-count: 2;
-        }
-
-        #flash-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #fff;
-            opacity: 0;
-            pointer-events: none;
-            z-index: 15;
-            transition: opacity 0.1s ease-out;
-            mix-blend-mode: overlay;
-        }
-
-        .small-btn {
-            padding: 2px 4px;
-            font-size: 0.7rem;
-            margin: 0;
-            width: 100%;
-            height: 24px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* Controls (Mobile Friendly) */
-        #controls {
-            display: none; 
-            /* 3 columns for arrows, 1 wider column for Drop */
-            grid-template-columns: repeat(3, 1fr) 1.2fr; 
-            grid-template-rows: 50px 50px;
-            grid-template-areas: 
-                ".    rot   .     drop"
-                "left down  right drop";
-            gap: 2px;
-            margin-top: 5px;
-            width: 100%;
-            max-width: 400px;
-            justify-content: center;
-            
-            /* Ensure controls are clickable and on top */
-            position: relative;
-            z-index: 50; 
-            touch-action: none; /* Disable browser zooming/scrolling */
-        }
-
-        .ctrl-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--neon-blue);
-            color: var(--neon-blue);
-            width: 100%;
-            height: 100%;
-            border-radius: 10px;
-            font-size: 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            user-select: none;
-            box-shadow: 0 0 5px var(--neon-blue);
-            -webkit-tap-highlight-color: transparent;
-            /* Disable touch actions on buttons too */
-            touch-action: none;
-        }
-
-        .ctrl-btn:active {
-            background: var(--neon-blue);
-            color: #000;
-        }
-
-        .btn-up { grid-area: rot; }
-        .btn-left { grid-area: left; }
-        .btn-right { grid-area: right; }
-        .btn-down { grid-area: down; }
-        .btn-drop { 
-            grid-area: drop; 
-            border-color: var(--neon-pink);
-            color: var(--neon-pink);
-            box-shadow: 0 0 5px var(--neon-pink);
-            font-size: 2rem;
-            font-weight: bold;
-        }
-        .btn-drop:active {
-            background: var(--neon-pink);
-        }
-
-        /* Mobile Layout Adjustments */
-        @media (max-width: 768px) {
-            body {
-                justify-content: flex-start;
-            }
-
-            #game-layout {
-                flex-direction: column;
-                align-items: center;
-                gap: 2px;
-                padding: 0;
-                width: 100%;
-                /* Make sure layout takes full height but allows controls to sit at bottom if needed */
-                height: 100%; 
-                overflow: hidden;
-            }
-
-            #ui-panel {
-                flex-direction: row;
-                width: 100%;
-                justify-content: space-between;
-                gap: 4px;
-                order: -1;
-                height: 30px;
-                padding: 0 4px;
-                margin-top: 2px;
-                flex-shrink: 0; /* Prevent shrinking */
-            }
-
-            .ui-buttons {
-                display: flex;
-                flex-direction: row;
-                width: auto;
-                gap: 2px;
-            }
-            .small-btn {
-                width: 50px;
-                font-size: 0.6rem;
-            }
-
-            .stat-box {
-                width: auto;
-                min-width: 40px;
-                padding: 0 4px;
-                height: 100%;
-                border-left: 2px solid var(--neon-pink);
-            }
-            .stat-label { display: none; }
-            .stat-value { font-size: 0.8rem; }
-            
-            #next-piece-canvas {
-                width: 28px;
-                height: 28px;
-                margin-top: 0;
-            }
-
-            #game-container {
-                /* Ensure container doesn't overflow */
-                flex-shrink: 1;
-                overflow: hidden;
-            }
-
-            #controls {
-                display: grid;
-                margin-bottom: 5px;
-                flex-shrink: 0; /* Controls must retain size */
-                padding-bottom: 5px; /* Safe area */
-            }
-        }
-    </style>
+    .cards { display: grid; gap: 10px; }
+    .plan-card {
+      background: var(--card);
+      border: 1px solid #334155;
+      border-left: 4px solid var(--accent2);
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .plan-top { display: flex; justify-content: space-between; gap: 8px; }
+    .name { font-weight: 700; }
+    .meta { color: var(--muted); font-size: .86rem; margin-top: 4px; }
+    .tips { margin: 8px 0 0; padding-left: 18px; color: #cbd5e1; }
+    .video {
+      display: inline-block;
+      margin-top: 8px;
+      color: var(--accent);
+      font-size: .86rem;
+      text-decoration: none;
+    }
+    .empty {
+      border: 1px dashed #475569;
+      border-radius: 10px;
+      color: var(--muted);
+      padding: 14px;
+      text-align: center;
+    }
+    .danger { color: var(--danger); }
+  </style>
 </head>
 <body>
+  <div class="container">
+    <section class="panel">
+      <h1>筋トレ部位プランナー（iOS / Android / Web向けMVP）</h1>
+      <p class="sub">部位を選択すると、レベルと器具条件に合わせて本日のプランを自動生成します。</p>
+    </section>
 
-    <div id="game-layout">
-        <!-- UI Panel -->
-        <div id="ui-panel">
-            <div class="ui-buttons">
-                <button class="cyber-btn small-btn" id="pause-btn" onclick="togglePause()">PAUSE</button>
-                <button class="cyber-btn small-btn btn-reset" id="reset-btn" onclick="resetGame()">RESET</button>
-            </div>
-            
-            <div class="stat-box">
-                <div class="stat-label">Score</div>
-                <div class="stat-value" id="score">0</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">Level</div>
-                <div class="stat-value" id="level">1</div>
-            </div>
-            
-            <!-- Next piece wrapper -->
-            <div style="height: 100%; display: flex; align-items: center;">
-                 <canvas id="next-piece-canvas"></canvas>
-            </div>
+    <section class="panel controls">
+      <div>
+        <label for="level">レベル</label>
+        <select id="level">
+          <option value="beginner">初心者</option>
+          <option value="intermediate">中級者</option>
+          <option value="advanced">上級者</option>
+        </select>
+      </div>
+      <div>
+        <label for="equipment">器具</label>
+        <select id="equipment">
+          <option value="bodyweight">自重</option>
+          <option value="dumbbell">ダンベル</option>
+          <option value="gym">ジム設備</option>
+        </select>
+      </div>
+      <div>
+        <label for="duration">時間</label>
+        <select id="duration">
+          <option value="15">15分</option>
+          <option value="30" selected>30分</option>
+          <option value="45">45分</option>
+        </select>
+      </div>
+      <div style="align-self:end">
+        <button id="generateBtn">プラン生成</button>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
+        <h2 style="margin-top:0">部位を選択（最大2つ）</h2>
+        <div class="bodymap" id="bodyMap">
+          <div class="silhouette">🧍</div>
+          <button class="muscle shoulders" data-muscle="shoulders">肩</button>
+          <button class="muscle chest" data-muscle="chest">胸</button>
+          <button class="muscle arms" data-muscle="arms">腕</button>
+          <button class="muscle abs" data-muscle="abs">腹</button>
+          <button class="muscle back" data-muscle="back">背中</button>
+          <button class="muscle legs" data-muscle="legs">脚</button>
         </div>
+        <p class="sub" id="selectionText" style="margin-top:8px">未選択です。</p>
+      </div>
 
-        <!-- Game Container -->
-        <div id="game-container">
-            <div id="flash-overlay"></div>
-            <canvas id="tetris"></canvas>
-            <div id="overlay">
-                <div class="glitch-text" id="overlay-title">SYSTEM READY</div>
-                
-                <!-- Level Selector -->
-                <div class="level-select-container" id="level-selector">
-                    <span style="color: var(--neon-blue); font-weight: bold; margin-right: 5px;">LEVEL</span>
-                    <button class="cyber-btn level-btn" id="lvl-down">-</button>
-                    <span id="start-level-display" style="color: #fff; font-size: 1.5rem; font-weight: bold; width: 40px; text-align: center;">1</span>
-                    <button class="cyber-btn level-btn" id="lvl-up">+</button>
-                </div>
+      <div class="panel">
+        <h2 style="margin-top:0">本日のメニュー</h2>
+        <div id="plan" class="cards">
+          <div class="empty">左で部位を選択し、「プラン生成」を押してください。</div>
+        </div>
+      </div>
+    </section>
+  </div>
 
-                <!-- Ranking Area -->
-                <div id="ranking-list" style="display:none;">
-                    <!-- Items injected by JS -->
-                </div>
+  <script>
+    const selected = new Set();
+    const bodyMap = document.getElementById('bodyMap');
+    const selectionText = document.getElementById('selectionText');
+    const planRoot = document.getElementById('plan');
 
-                <button class="cyber-btn" id="start-btn">INITIALIZE</button>
-                <div id="final-score" style="display:none; margin-top: 10px; color: #fff;"></div>
+    const recipes = {
+      chest: [
+        { name: 'プッシュアップ', equipment: ['bodyweight'], videoUrl: 'https://www.youtube.com/results?search_query=push+up+form', tips: ['肩をすくめない', '胸で押す意識'] },
+        { name: 'ダンベルベンチプレス', equipment: ['dumbbell', 'gym'], videoUrl: 'https://www.youtube.com/results?search_query=dumbbell+bench+press+form', tips: ['肩甲骨を寄せる', '足裏で床を押す'] },
+        { name: 'チェストプレス', equipment: ['gym'], videoUrl: 'https://www.youtube.com/results?search_query=chest+press+machine+form', tips: ['バーを胸のラインへ', '反動を使わない'] }
+      ],
+      back: [
+        { name: 'バックエクステンション', equipment: ['bodyweight'], videoUrl: 'https://www.youtube.com/results?search_query=back+extension+form', tips: ['腰を反りすぎない', '可動域を意識'] },
+        { name: 'ワンハンドロウ', equipment: ['dumbbell', 'gym'], videoUrl: 'https://www.youtube.com/results?search_query=one+arm+row+form', tips: ['肘を腰に引く', '体幹を固定'] },
+        { name: 'ラットプルダウン', equipment: ['gym'], videoUrl: 'https://www.youtube.com/results?search_query=lat+pulldown+form', tips: ['胸を張る', '首で引かない'] }
+      ],
+      legs: [
+        { name: 'スクワット', equipment: ['bodyweight', 'dumbbell', 'gym'], videoUrl: 'https://www.youtube.com/results?search_query=squat+form', tips: ['膝とつま先の向きを揃える', '背中を丸めない'] },
+        { name: 'ブルガリアンスクワット', equipment: ['bodyweight', 'dumbbell'], videoUrl: 'https://www.youtube.com/results?search_query=bulgarian+squat+form', tips: ['前足重心', '膝が内に入らない'] },
+        { name: 'レッグプレス', equipment: ['gym'], videoUrl: 'https://www.youtube.com/results?search_query=leg+press+form', tips: ['腰を浮かせない', '可動域をコントロール'] }
+      ],
+      shoulders: [
+        { name: 'パイクプッシュアップ', equipment: ['bodyweight'], videoUrl: 'https://www.youtube.com/results?search_query=pike+push+up+form', tips: ['頭を手の間に下ろす', '首に力を入れない'] },
+        { name: 'ショルダープレス', equipment: ['dumbbell', 'gym'], videoUrl: 'https://www.youtube.com/results?search_query=shoulder+press+form', tips: ['腰を反りすぎない', '肘は真下に保つ'] },
+        { name: 'サイドレイズ', equipment: ['dumbbell', 'gym'], videoUrl: 'https://www.youtube.com/results?search_query=side+raise+form', tips: ['反動を使わない', '肩の高さまで上げる'] }
+      ],
+      arms: [
+        { name: 'ナロープッシュアップ', equipment: ['bodyweight'], videoUrl: 'https://www.youtube.com/results?search_query=close+grip+push+up+form', tips: ['肘を締める', '体を一直線に'] },
+        { name: 'ダンベルカール', equipment: ['dumbbell', 'gym'], videoUrl: 'https://www.youtube.com/results?search_query=dumbbell+curl+form', tips: ['肘を固定', '反動禁止'] },
+        { name: 'トライセプスプレスダウン', equipment: ['gym'], videoUrl: 'https://www.youtube.com/results?search_query=triceps+pushdown+form', tips: ['肩を下げる', '肘の位置を固定'] }
+      ],
+      abs: [
+        { name: 'プランク', equipment: ['bodyweight'], videoUrl: 'https://www.youtube.com/results?search_query=plank+form', tips: ['腰を落とさない', '腹圧をかける'] },
+        { name: 'デッドバグ', equipment: ['bodyweight'], videoUrl: 'https://www.youtube.com/results?search_query=dead+bug+exercise+form', tips: ['腰を床につける', '呼吸を止めない'] },
+        { name: 'ケーブルクランチ', equipment: ['gym'], videoUrl: 'https://www.youtube.com/results?search_query=cable+crunch+form', tips: ['背中を丸める', '股関節で折らない'] }
+      ]
+    };
+
+    const names = { chest:'胸', back:'背中', legs:'脚', shoulders:'肩', arms:'腕', abs:'腹' };
+
+    function prescription(level) {
+      if (level === 'beginner') return { sets: '2〜3', reps: '10〜12', rest: '60〜90秒' };
+      if (level === 'intermediate') return { sets: '3〜4', reps: '8〜12', rest: '60〜120秒' };
+      return { sets: '4〜5', reps: '6〜10', rest: '90〜150秒' };
+    }
+
+    function sampleByEquipment(list, equipment) {
+      return list.filter(x => x.equipment.includes(equipment));
+    }
+
+    function updateSelectionText() {
+      if (!selected.size) {
+        selectionText.textContent = '未選択です。';
+        return;
+      }
+      const label = [...selected].map(k => names[k]).join(' + ');
+      selectionText.textContent = `選択中: ${label}`;
+    }
+
+    bodyMap.addEventListener('click', (e) => {
+      const btn = e.target.closest('.muscle');
+      if (!btn) return;
+      const muscle = btn.dataset.muscle;
+
+      if (selected.has(muscle)) {
+        selected.delete(muscle);
+        btn.classList.remove('active');
+      } else {
+        if (selected.size >= 2) {
+          alert('部位は最大2つまで選択できます。');
+          return;
+        }
+        selected.add(muscle);
+        btn.classList.add('active');
+      }
+      updateSelectionText();
+    });
+
+    document.getElementById('generateBtn').addEventListener('click', () => {
+      const level = document.getElementById('level').value;
+      const equipment = document.getElementById('equipment').value;
+      const duration = Number(document.getElementById('duration').value);
+
+      if (!selected.size) {
+        planRoot.innerHTML = '<div class="empty danger">部位を1つ以上選択してください。</div>';
+        return;
+      }
+
+      const targetCount = duration === 15 ? 3 : duration === 30 ? 4 : 5;
+      const rule = prescription(level);
+      const chosen = [...selected];
+      const primary = chosen[0];
+      const secondary = chosen[1] || chosen[0];
+
+      const primaryPool = sampleByEquipment(recipes[primary], equipment);
+      const secondaryPool = sampleByEquipment(recipes[secondary], equipment);
+
+      const combined = [...primaryPool, ...secondaryPool].slice(0, targetCount);
+
+      if (!combined.length) {
+        planRoot.innerHTML = '<div class="empty danger">この器具条件に合う種目がありません。器具を変更してください。</div>';
+        return;
+      }
+
+      const warmup = {
+        name: 'ウォームアップ（関節可動 + 軽い有酸素 3分）',
+        tips: ['肩・股関節を大きく動かす', '息が上がりすぎない強度で開始'],
+        videoUrl: 'https://www.youtube.com/results?search_query=dynamic+warm+up+routine'
+      };
+
+      const cooldown = {
+        name: 'クールダウン（ストレッチ 2〜4分）',
+        tips: ['鍛えた部位を中心に30秒ずつ', '呼吸を整えて終了'],
+        videoUrl: 'https://www.youtube.com/results?search_query=cool+down+stretch+routine'
+      };
+
+      const render = [warmup, ...combined, cooldown];
+
+      planRoot.innerHTML = render.map((item, idx) => `
+        <article class="plan-card">
+          <div class="plan-top">
+            <div>
+              <div class="name">${idx + 1}. ${item.name}</div>
+              <div class="meta">セット: ${idx === 0 || idx === render.length - 1 ? '-' : rule.sets} / 回数: ${idx === 0 || idx === render.length - 1 ? '-' : rule.reps} / 休憩: ${idx === 0 || idx === render.length - 1 ? '-' : rule.rest}</div>
             </div>
-        </div>
-
-        <!-- Controls (Mobile) -->
-        <div id="controls">
-            <button class="ctrl-btn btn-up">↻</button>
-            <button class="ctrl-btn btn-left">←</button>
-            <button class="ctrl-btn btn-down">↓</button>
-            <button class="ctrl-btn btn-right">→</button>
-            <button class="ctrl-btn btn-drop">⇊</button>
-        </div>
-    </div>
-
-    <script>
-        const canvas = document.getElementById('tetris');
-        const context = canvas.getContext('2d');
-        const nextCanvas = document.getElementById('next-piece-canvas');
-        const nextContext = nextCanvas.getContext('2d');
-        const overlay = document.getElementById('overlay');
-        const overlayTitle = document.getElementById('overlay-title');
-        const startBtn = document.getElementById('start-btn');
-        const pauseBtn = document.getElementById('pause-btn');
-        const scoreElement = document.getElementById('score');
-        const levelElement = document.getElementById('level');
-        const finalScoreElement = document.getElementById('final-score');
-        const gameContainer = document.getElementById('game-container');
-        const flashOverlay = document.getElementById('flash-overlay');
-        const controlsDiv = document.getElementById('controls');
-        const uiPanel = document.getElementById('ui-panel');
-        const rankingList = document.getElementById('ranking-list');
-        const startLevelDisplay = document.getElementById('start-level-display');
-        const lvlUpBtn = document.getElementById('lvl-up');
-        const lvlDownBtn = document.getElementById('lvl-down');
-        const levelSelector = document.getElementById('level-selector');
-
-        let BLOCK_SIZE = 30;
-        const RANKING_KEY = 'cyber_tetris_ranking';
-        let startLevel = 1;
-
-        const COLORS = [
-            null,
-            '#FF0D72', '#0DC2FF', '#0DFF72', '#F538FF', '#FF8E0D', '#FFE138', '#3877FF'
-        ];
-
-        const PIECES = 'ILJOTSZ';
-        
-        function createPiece(type) {
-            if (type === 'I') return [[0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0]];
-            if (type === 'L') return [[0, 2, 0], [0, 2, 0], [0, 2, 2]];
-            if (type === 'J') return [[0, 3, 0], [0, 3, 0], [3, 3, 0]];
-            if (type === 'O') return [[4, 4], [4, 4]];
-            if (type === 'Z') return [[5, 5, 0], [0, 5, 5], [0, 0, 0]];
-            if (type === 'S') return [[0, 6, 6], [6, 6, 0], [0, 0, 0]];
-            if (type === 'T') return [[0, 7, 0], [7, 7, 7], [0, 0, 0]];
-        }
-
-        const arena = createMatrix(12, 22);
-        let particles = [];
-        let floatTexts = [];
-
-        const player = {
-            pos: {x: 0, y: 0},
-            matrix: null,
-            score: 0,
-            level: 1,
-            lines: 0,
-            next: null,
-        };
-
-        let dropCounter = 0;
-        let dropInterval = 1000;
-        let lastTime = 0;
-        let isPaused = true;
-        let isGameOver = false;
-        let isGameStarted = false;
-        let animationId = null;
-
-        // Level Selector Logic
-        function updateStartLevel(change) {
-            startLevel += change;
-            if (startLevel < 1) startLevel = 1;
-            if (startLevel > 20) startLevel = 20;
-            startLevelDisplay.innerText = startLevel;
-        }
-
-        lvlUpBtn.addEventListener('click', () => updateStartLevel(1));
-        lvlDownBtn.addEventListener('click', () => updateStartLevel(-1));
-
-        function resizeGame() {
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            const isMobile = width <= 768;
-
-            let availableHeight, availableWidth;
-            
-            const marginX = 2; 
-            const marginY = 4;
-
-            if (isMobile) {
-                // Mobile Calculation
-                const uiHeight = 34; // Header height
-                
-                // Controls: 2 rows of 50px + gap 2px + margin = ~110px
-                // + Extra safety margin for address bars etc.
-                const controlsHeight = 140; 
-
-                const usedHeight = uiHeight + controlsHeight + marginY;
-                availableHeight = height - usedHeight;
-                availableWidth = width - marginX;
-            } else {
-                // PC Calculation
-                availableHeight = height - 40; 
-                const uiWidth = 160; 
-                availableWidth = width - uiWidth - 40;
-            }
-
-            const sizeByHeight = Math.floor(availableHeight / 22);
-            const sizeByWidth = Math.floor(availableWidth / 12);
-            
-            // ブロックサイズを計算 (85%は廃止して画面に収まる最大値を使用、ただし余白確保で小さくなる)
-            BLOCK_SIZE = Math.min(sizeByHeight, sizeByWidth);
-            BLOCK_SIZE = Math.max(10, BLOCK_SIZE); 
-
-            canvas.width = BLOCK_SIZE * 12;
-            canvas.height = BLOCK_SIZE * 22;
-
-            const nextSize = isMobile ? 28 : 120;
-            nextCanvas.width = nextSize;
-            nextCanvas.height = nextSize;
-
-            context.setTransform(1, 0, 0, 1, 0, 0);
-            context.scale(BLOCK_SIZE, BLOCK_SIZE);
-
-            const nextBlockSize = nextSize / 5;
-            nextContext.setTransform(1, 0, 0, 1, 0, 0);
-            nextContext.scale(nextBlockSize, nextBlockSize);
-
-            draw();
-            if(player.next) drawNext();
-        }
-
-        window.addEventListener('resize', resizeGame);
-        window.addEventListener('load', () => {
-            setTimeout(resizeGame, 100);
-        });
-
-        function createMatrix(w, h) {
-            const matrix = [];
-            while (h--) matrix.push(new Array(w).fill(0));
-            return matrix;
-        }
-
-        function createParticles(x, y, colorIdx) {
-            const color = COLORS[colorIdx] || '#fff';
-            for (let i = 0; i < 8; i++) {
-                particles.push({
-                    x: x + 0.5, y: y + 0.5,
-                    vx: (Math.random() - 0.5) * 0.8,
-                    vy: (Math.random() - 0.5) * 0.8,
-                    size: Math.random() * 0.15 + 0.05,
-                    life: 1.0, decay: Math.random() * 0.03 + 0.02,
-                    color: color
-                });
-            }
-        }
-
-        function createFloatText(text, color) {
-            floatTexts.push({
-                text: text,
-                x: canvas.width / 2, 
-                y: canvas.height / 2,
-                vy: -2, life: 1.0, color: color, scale: 0.5
-            });
-        }
-
-        function triggerShake(isHard = false) {
-            gameContainer.classList.remove('shake-effect', 'shake-hard');
-            void gameContainer.offsetWidth;
-            gameContainer.classList.add(isHard ? 'shake-hard' : 'shake-effect');
-        }
-
-        function triggerFlash() {
-            flashOverlay.style.opacity = '0.8';
-            setTimeout(() => flashOverlay.style.opacity = '0', 100);
-        }
-
-        function getRankingWithCurrent(currentScore) {
-            let ranking = JSON.parse(localStorage.getItem(RANKING_KEY)) || [];
-            let displayRanking = ranking.map(s => ({ score: s, isCurrent: false }));
-            if (currentScore > 0) {
-                displayRanking.push({ score: currentScore, isCurrent: true });
-            }
-            displayRanking.sort((a, b) => b.score - a.score);
-            displayRanking = displayRanking.slice(0, 10);
-            
-            const saveScores = displayRanking.map(item => item.score);
-            localStorage.setItem(RANKING_KEY, JSON.stringify(saveScores));
-            
-            return displayRanking;
-        }
-
-        function showRanking(displayRanking) {
-            rankingList.innerHTML = '<div style="color:var(--neon-blue);margin-bottom:10px;text-align:center;">- TOP RECORDS -</div>';
-            if (displayRanking.length === 0) {
-                rankingList.innerHTML += '<div class="ranking-item" style="justify-content:center;">NO DATA</div>';
-            } else {
-                displayRanking.forEach((item, index) => {
-                    const div = document.createElement('div');
-                    div.className = 'ranking-item';
-                    if (item.isCurrent) {
-                        div.classList.add('highlight-score');
-                        div.innerHTML = `<span class="ranking-rank">#${index + 1}</span><span class="ranking-score">YOU > ${item.score}</span>`;
-                    } else {
-                        div.innerHTML = `<span class="ranking-rank">#${index + 1}</span><span class="ranking-score">${item.score}</span>`;
-                    }
-                    rankingList.appendChild(div);
-                });
-            }
-            rankingList.style.display = 'block';
-        }
-
-        function draw() {
-            context.fillStyle = '#000';
-            context.fillRect(0, 0, 12, 22);
-
-            drawMatrix(arena, {x: 0, y: 0}, context);
-            if (player.matrix) drawMatrix(player.matrix, player.pos, context);
-
-            particles.forEach(p => {
-                context.globalAlpha = p.life;
-                context.fillStyle = p.color;
-                context.fillRect(p.x, p.y, p.size, p.size);
-                context.shadowBlur = 5; context.shadowColor = p.color;
-            });
-            context.globalAlpha = 1.0;
-            context.shadowBlur = 0;
-
-            if (floatTexts.length > 0) {
-                context.save();
-                context.setTransform(1, 0, 0, 1, 0, 0);
-                floatTexts.forEach(ft => {
-                    const fontSize = Math.max(20, canvas.width / 8); 
-                    context.font = `900 ${fontSize + (1-ft.life)*10}px 'Orbitron'`;
-                    context.textAlign = 'center';
-                    context.textBaseline = 'middle';
-                    context.fillStyle = ft.color;
-                    context.globalAlpha = ft.life;
-                    context.shadowColor = ft.color;
-                    context.shadowBlur = 10;
-                    context.strokeStyle = '#fff';
-                    context.lineWidth = 2;
-                    context.strokeText(ft.text, ft.x, ft.y);
-                    context.fillText(ft.text, ft.x, ft.y);
-                });
-                context.restore();
-            }
-        }
-
-        function drawNext() {
-            if (!player.next) return;
-            nextContext.fillStyle = 'rgba(0,0,0,1)';
-            nextContext.fillRect(0, 0, 5, 5); 
-            const offset = {
-                x: (5 - player.next[0].length) / 2,
-                y: (5 - player.next.length) / 2
-            };
-            drawMatrix(player.next, offset, nextContext);
-        }
-
-        function drawMatrix(matrix, offset, ctx) {
-            matrix.forEach((row, y) => {
-                row.forEach((value, x) => {
-                    if (value !== 0) {
-                        ctx.fillStyle = COLORS[value];
-                        ctx.fillRect(x + offset.x, y + offset.y, 1, 1);
-                        ctx.lineWidth = 0.05;
-                        ctx.strokeStyle = '#fff';
-                        ctx.strokeRect(x + offset.x, y + offset.y, 1, 1);
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-                        ctx.fillRect(x + offset.x + 0.2, y + offset.y + 0.2, 0.6, 0.6);
-                    }
-                });
-            });
-        }
-
-        function merge(arena, player) {
-            player.matrix.forEach((row, y) => {
-                row.forEach((value, x) => {
-                    if (value !== 0) {
-                        arena[y + player.pos.y][x + player.pos.x] = value;
-                    }
-                });
-            });
-        }
-
-        function rotate(matrix, dir) {
-            for (let y = 0; y < matrix.length; ++y) {
-                for (let x = 0; x < y; ++x) {
-                    [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
-                }
-            }
-            if (dir > 0) matrix.forEach(row => row.reverse());
-            else matrix.reverse();
-        }
-
-        function playerDrop() {
-            if (!isGameStarted || isPaused || isGameOver) return;
-            player.pos.y++;
-            if (collide(arena, player)) {
-                player.pos.y--;
-                merge(arena, player);
-                playerReset();
-                arenaSweep();
-                updateScore();
-            }
-            dropCounter = 0;
-        }
-
-        function hardDrop() {
-            if (!isGameStarted || isPaused || isGameOver) return;
-            while (!collide(arena, player)) {
-                player.pos.y++;
-            }
-            player.pos.y--;
-            merge(arena, player);
-            playerReset();
-            arenaSweep();
-            updateScore();
-            dropCounter = 0;
-        }
-
-        function playerMove(offset) {
-            if (!isGameStarted || isPaused || isGameOver) return;
-            player.pos.x += offset;
-            if (collide(arena, player)) {
-                player.pos.x -= offset;
-            }
-        }
-
-        function playerRotate(dir) {
-            if (!isGameStarted || isPaused || isGameOver) return;
-            const pos = player.pos.x;
-            let offset = 1;
-            rotate(player.matrix, dir);
-            while (collide(arena, player)) {
-                player.pos.x += offset;
-                offset = -(offset + (offset > 0 ? 1 : -1));
-                if (offset > player.matrix[0].length) {
-                    rotate(player.matrix, -dir);
-                    player.pos.x = pos;
-                    return;
-                }
-            }
-        }
-
-        function playerReset() {
-            if (player.next === null) {
-                player.next = createPiece(PIECES[PIECES.length * Math.random() | 0]);
-            }
-            player.matrix = player.next;
-            player.next = createPiece(PIECES[PIECES.length * Math.random() | 0]);
-            drawNext();
-
-            player.pos.y = 0;
-            player.pos.x = (arena[0].length / 2 | 0) - (player.matrix[0].length / 2 | 0);
-            
-            if (collide(arena, player)) {
-                gameOver();
-            }
-        }
-
-        function collide(arena, player) {
-            const m = player.matrix;
-            const o = player.pos;
-            for (let y = 0; y < m.length; ++y) {
-                for (let x = 0; x < m[y].length; ++x) {
-                    if (m[y][x] !== 0 &&
-                       (arena[y + o.y] &&
-                        arena[y + o.y][x + o.x]) !== 0) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        function arenaSweep() {
-            let rowCount = 0;
-            let rowsToRemove = [];
-
-            for (let y = arena.length -1; y > 0; --y) {
-                let isRowFull = true;
-                for (let x = 0; x < arena[y].length; ++x) {
-                    if (arena[y][x] === 0) {
-                        isRowFull = false;
-                        break;
-                    }
-                }
-                if (isRowFull) {
-                    rowsToRemove.push(y);
-                    rowCount++;
-                }
-            }
-
-            if (rowCount > 0) {
-                rowsToRemove.forEach(y => {
-                    for (let x = 0; x < arena[y].length; x++) {
-                        createParticles(x, y, arena[y][x]);
-                    }
-                });
-
-                let newArena = arena.filter((row, index) => !rowsToRemove.includes(index));
-                while (newArena.length < arena.length) {
-                    newArena.unshift(new Array(arena[0].length).fill(0));
-                }
-                for(let y=0; y<arena.length; y++) {
-                    arena[y] = newArena[y];
-                }
-
-                const lineScores = [0, 40, 100, 300, 1200];
-                const baseScore = lineScores[rowCount] || 0;
-                player.score += baseScore * (player.level + 1);
-                player.lines += rowCount;
-                player.level = Math.floor(player.lines / 10) + 1;
-                dropInterval = Math.max(100, 1000 - ((player.level - 1) * 80));
-
-                if (rowCount === 4) {
-                    triggerShake(true);
-                    triggerFlash();
-                    createFloatText("TETRIS!!", "#00f3ff");
-                } else if (rowCount === 3) {
-                    triggerShake(false);
-                    createFloatText("TRIPLE", "#ff00ff");
-                } else if (rowCount === 2) {
-                    createFloatText("DOUBLE", "#0aff00");
-                } else {
-                    createFloatText("SINGLE", "#fcee0a");
-                }
-            }
-        }
-
-        function updateScore() {
-            scoreElement.innerText = player.score;
-            levelElement.innerText = player.level;
-        }
-
-        function gameOver() {
-            isGameOver = true;
-            isPaused = true;
-            isGameStarted = false;
-            cancelAnimationFrame(animationId);
-            
-            const rankingData = getRankingWithCurrent(player.score);
-            showRanking(rankingData);
-
-            levelSelector.style.display = 'flex'; // Show level selector
-            overlay.style.display = 'flex';
-            overlayTitle.innerText = "SYSTEM FAILURE";
-            overlayTitle.style.color = "var(--neon-pink)";
-            startBtn.innerText = "REBOOT SYSTEM";
-            finalScoreElement.style.display = 'block';
-            finalScoreElement.innerText = `FINAL SCORE: ${player.score}`;
-            pauseBtn.innerText = "PAUSE";
-        }
-
-        function update(time = 0) {
-            if (isPaused) return;
-
-            const deltaTime = time - lastTime;
-            lastTime = time;
-
-            dropCounter += deltaTime;
-            if (dropCounter > dropInterval) {
-                playerDrop();
-            }
-
-            for (let i = particles.length - 1; i >= 0; i--) {
-                let p = particles[i];
-                p.x += p.vx; p.y += p.vy;
-                p.life -= p.decay; p.vy += 0.02;
-                if (p.life <= 0) particles.splice(i, 1);
-            }
-
-            for (let i = floatTexts.length - 1; i >= 0; i--) {
-                let ft = floatTexts[i];
-                ft.y += ft.vy; ft.life -= 0.02;
-                if (ft.life <= 0) floatTexts.splice(i, 1);
-            }
-
-            draw();
-            animationId = requestAnimationFrame(update);
-        }
-
-        function togglePause() {
-            if (!isGameStarted || isGameOver) return;
-            isPaused = !isPaused;
-
-            if (isPaused) {
-                cancelAnimationFrame(animationId);
-                overlay.style.display = 'flex';
-                rankingList.style.display = 'none'; 
-                levelSelector.style.display = 'none'; // Hide level selector on pause
-                overlayTitle.innerText = "SYSTEM PAUSED";
-                overlayTitle.style.color = "var(--neon-yellow)";
-                startBtn.innerText = "RESUME";
-                finalScoreElement.style.display = 'none';
-                pauseBtn.innerText = "RESUME";
-            } else {
-                overlay.style.display = 'none';
-                pauseBtn.innerText = "PAUSE";
-                lastTime = performance.now();
-                update();
-            }
-        }
-
-        function resetGame() {
-            // Confirm dialog removed as per request
-            startGame();
-        }
-
-        startBtn.addEventListener('click', () => {
-            if (isPaused && isGameStarted && !isGameOver) {
-                togglePause();
-            } else {
-                startGame();
-            }
-        });
-
-        function startGame() {
-            if (animationId) cancelAnimationFrame(animationId); // Ensure no duplicate loops
-
-            arena.forEach(row => row.fill(0));
-            player.score = 0; 
-            player.level = startLevel; // Use selected level
-            player.lines = 0; 
-            player.next = null;
-            
-            // Adjust drop speed for starting level
-            dropInterval = Math.max(100, 1000 - ((player.level - 1) * 80));
-            
-            updateScore();
-            
-            particles = []; floatTexts = [];
-            gameContainer.classList.remove('shake-effect', 'shake-hard');
-            
-            isGameOver = false; isPaused = false; isGameStarted = true;
-            overlay.style.display = 'none'; finalScoreElement.style.display = 'none';
-            rankingList.style.display = 'none';
-            levelSelector.style.display = 'none'; // Hide selector
-            pauseBtn.innerText = "PAUSE";
-            
-            playerReset();
-            resizeGame();
-            update();
-        }
-
-        document.addEventListener('keydown', event => {
-            if (event.keyCode === 80 || event.keyCode === 27) {
-                togglePause(); return;
-            }
-            if (isPaused || !isGameStarted) return;
-
-            if (event.keyCode === 37) playerMove(-1);
-            else if (event.keyCode === 39) playerMove(1);
-            else if (event.keyCode === 40) playerDrop();
-            else if (event.keyCode === 81) playerRotate(-1);
-            else if (event.keyCode === 87 || event.keyCode === 38) playerRotate(1);
-            else if (event.keyCode === 32) hardDrop();
-        });
-        
-        function setupMobileControls() {
-            let lastTouchTime = 0;
-
-            const bind = (selector, action) => {
-                const btn = document.querySelector(selector);
-                if (!btn) return;
-                
-                const handleTouch = (e) => {
-                    if (e.cancelable) e.preventDefault();
-                    lastTouchTime = Date.now();
-                    action();
-                };
-
-                const handleMouse = (e) => {
-                    if (Date.now() - lastTouchTime < 500) return;
-                    action();
-                };
-
-                btn.addEventListener('touchstart', handleTouch, { passive: false });
-                btn.addEventListener('mousedown', handleMouse);
-            };
-
-            bind('.btn-up', () => playerRotate(1));
-            bind('.btn-left', () => playerMove(-1));
-            bind('.btn-right', () => playerMove(1));
-            bind('.btn-down', () => playerDrop());
-            bind('.btn-drop', () => hardDrop());
-        }
-        
-        setupMobileControls();
-    </script>
+            <div class="meta">${idx === 0 ? '準備' : idx === render.length - 1 ? '回復' : 'メイン'}</div>
+          </div>
+          <ul class="tips">${item.tips.map(t => `<li>${t}</li>`).join('')}</ul>
+          <a class="video" href="${item.videoUrl}" target="_blank" rel="noopener noreferrer">▶ 外部動画でフォーム確認</a>
+        </article>
+      `).join('');
+    });
+  </script>
 </body>
 </html>
-
-
